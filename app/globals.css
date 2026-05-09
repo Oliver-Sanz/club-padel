@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #25476e;
+  --foreground: #ffffff;
+  --muted: #33efff;
+  --card: rgba(7, 17, 28, 0.58);
+  --line: rgba(204, 255, 0, 0.6);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at 50% -14rem, rgba(204, 255, 0, 0.3), transparent 22rem),
+    radial-gradient(circle at 12% 18%, rgba(51, 239, 255, 0.14), transparent 20rem),
+    linear-gradient(145deg, #07111c 0%, #25476e 48%, #102a43 100%),
+    #25476e;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(108deg, transparent 0 32%, rgba(217, 217, 217, 0.08) 32% 36%, transparent 36% 100%),
+    linear-gradient(78deg, transparent 0 68%, rgba(217, 217, 217, 0.06) 68% 71%, transparent 71% 100%);
+  opacity: 0.7;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.scrollbar-soft {
+  scrollbar-color: rgba(51, 239, 255, 0.5) transparent;
+  scrollbar-width: thin;
+}
+
+.scrollbar-soft::-webkit-scrollbar {
+  height: 10px;
+}
+
+.scrollbar-soft::-webkit-scrollbar-thumb {
+  background: rgba(51, 239, 255, 0.5);
+  border-radius: 999px;
+}
