@@ -1,3 +1,4 @@
+import { getClubDateISO, getClubDayRangeUtc } from "@/lib/club-time";
 import { toISODate } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -30,10 +31,11 @@ export type AdminData = {
 };
 
 function getDayRange(dateISO: string) {
-  const start = new Date(`${dateISO}T00:00:00`);
+  const { start, end } = getClubDayRangeUtc(dateISO);
 
   return {
-    start: start.toISOString()
+    start: start.toISOString(),
+    end: end.toISOString()
   };
 }
 
@@ -113,10 +115,8 @@ export async function getAdminData(params: { date?: string; court?: string }): P
 
   const { data: courts } = await supabase.from("courts").select("id,name").order("id");
   const { start } = getDayRange(selectedDate);
-  const tabStart = new Date(`${visibleDates[0]}T00:00:00`).toISOString();
-  const tabEndDate = new Date(`${visibleDates[visibleDates.length - 1]}T00:00:00`);
-  tabEndDate.setDate(tabEndDate.getDate() + 1);
-  const tabEnd = tabEndDate.toISOString();
+  const tabStart = getClubDayRangeUtc(visibleDates[0]).start.toISOString();
+  const tabEnd = getClubDayRangeUtc(visibleDates[visibleDates.length - 1]).end.toISOString();
 
   let query = supabase
     .from("bookings")
@@ -142,7 +142,7 @@ export async function getAdminData(params: { date?: string; court?: string }): P
   const bookingCounts = new Map<string, number>();
 
   tabBookings?.forEach((booking) => {
-    const dateISO = toISODate(new Date(booking.start_time));
+    const dateISO = getClubDateISO(booking.start_time);
     bookingCounts.set(dateISO, (bookingCounts.get(dateISO) ?? 0) + 1);
   });
 

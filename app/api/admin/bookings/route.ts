@@ -9,6 +9,7 @@ import {
   isInsideClubHours
 } from "@/lib/booking-rules";
 import { getAvailabilityData } from "@/lib/availability-data";
+import { clubDateTimeToUtc } from "@/lib/club-time";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,12 +19,6 @@ type CreateAdminBookingBody = {
   startMinute: number;
   durationMinutes: DurationMinutes;
 };
-
-function toLocalDateTime(dateISO: string, minuteOfDay: number) {
-  const date = new Date(`${dateISO}T00:00:00`);
-  date.setHours(Math.floor(minuteOfDay / 60), minuteOfDay % 60, 0, 0);
-  return date;
-}
 
 export async function POST(request: Request) {
   if (!isSupabaseConfigured()) {
@@ -112,8 +107,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const startDate = toLocalDateTime(dateISO, startMinute);
-  const endDate = toLocalDateTime(dateISO, startMinute + durationMinutes);
+  const startDate = clubDateTimeToUtc(dateISO, startMinute);
+  const endDate = clubDateTimeToUtc(dateISO, startMinute + durationMinutes);
 
   const { data, error } = await supabase
     .from("bookings")

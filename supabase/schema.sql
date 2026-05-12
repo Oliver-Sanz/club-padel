@@ -345,6 +345,10 @@ on public.profiles for update
 using (id = auth.uid())
 with check (id = auth.uid());
 
+create policy "Users can insert their own profile"
+on public.profiles for insert
+with check (id = auth.uid());
+
 create policy "Courts are visible to everyone"
 on public.courts for select
 using (true);
@@ -385,6 +389,11 @@ using (user_id = auth.uid() or public.is_admin());
 create policy "Users can create own holds"
 on public.booking_holds for insert
 with check (user_id = auth.uid());
+
+create policy "Users can update own holds"
+on public.booking_holds for update
+using (user_id = auth.uid() or public.is_admin())
+with check (user_id = auth.uid() or public.is_admin());
 
 create policy "Admins manage admin blocks"
 on public.admin_blocks for all

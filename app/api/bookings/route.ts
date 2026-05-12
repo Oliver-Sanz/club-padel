@@ -10,6 +10,7 @@ import {
   isWithinMaxBookingWindow
 } from "@/lib/booking-rules";
 import { getAvailabilityData } from "@/lib/availability-data";
+import { clubDateTimeToUtc } from "@/lib/club-time";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
@@ -19,12 +20,6 @@ type CreateBookingBody = {
   startMinute: number;
   durationMinutes: DurationMinutes;
 };
-
-function toLocalDateTime(dateISO: string, minuteOfDay: number) {
-  const date = new Date(`${dateISO}T00:00:00`);
-  date.setHours(Math.floor(minuteOfDay / 60), minuteOfDay % 60, 0, 0);
-  return date;
-}
 
 export async function POST(request: Request) {
   if (!isSupabaseConfigured()) {
@@ -45,8 +40,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "La reserva queda fuera del horario del club." }, { status: 400 });
   }
 
-  const startDate = toLocalDateTime(dateISO, startMinute);
-  const endDate = toLocalDateTime(dateISO, startMinute + durationMinutes);
+  const startDate = clubDateTimeToUtc(dateISO, startMinute);
+  const endDate = clubDateTimeToUtc(dateISO, startMinute + durationMinutes);
 
   if (!isWithinMaxBookingWindow(startDate)) {
     return NextResponse.json({ error: "Solo puedes reservar hasta 7 dias en el futuro." }, { status: 400 });

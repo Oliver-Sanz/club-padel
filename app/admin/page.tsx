@@ -2,8 +2,12 @@ import Link from "next/link";
 import { AuthCard } from "@/components/auth-card";
 import { AdminDatePicker } from "@/components/admin-date-picker";
 import { AdminManualBooking } from "@/components/admin-manual-booking";
+import { LogoutButton } from "@/components/logout-button";
+import { formatClubDateTime } from "@/lib/club-time";
 import { AdminBookingRow, getAdminData } from "@/lib/admin-data";
 import { formatMoney, toISODate } from "@/lib/format";
+
+export const dynamic = "force-dynamic";
 
 type AdminPageProps = {
   searchParams: Promise<{
@@ -13,10 +17,10 @@ type AdminPageProps = {
 };
 
 function formatTime(value: string) {
-  return new Intl.DateTimeFormat("es-ES", {
+  return formatClubDateTime(value, {
     hour: "2-digit",
     minute: "2-digit"
-  }).format(new Date(value));
+  });
 }
 
 function formatAdminDayLabel(value: string) {
@@ -114,6 +118,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         >
           Volver a reservas
         </Link>
+        {data.isLoggedIn ? (
+          <LogoutButton className="rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball" />
+        ) : null}
       </div>
 
       {!data.isConfigured ? (

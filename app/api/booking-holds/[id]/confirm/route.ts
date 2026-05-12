@@ -5,6 +5,7 @@ import {
   calculatePrice
 } from "@/lib/booking-rules";
 import { getAvailabilityData } from "@/lib/availability-data";
+import { getClubDateISO, getClubMinuteOfDay } from "@/lib/club-time";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,19 +14,6 @@ type ConfirmHoldContext = {
     id: string;
   }>;
 };
-
-function toDateISO(value: string) {
-  const date = new Date(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function toMinuteOfDay(value: string) {
-  const date = new Date(value);
-  return date.getHours() * 60 + date.getMinutes();
-}
 
 export async function POST(_request: Request, context: ConfirmHoldContext) {
   if (!isSupabaseConfigured()) {
@@ -66,9 +54,9 @@ export async function POST(_request: Request, context: ConfirmHoldContext) {
     return NextResponse.json({ error: "El tiempo de reserva temporal ha expirado." }, { status: 400 });
   }
 
-  const dateISO = toDateISO(hold.start_time);
-  const startMinute = toMinuteOfDay(hold.start_time);
-  const endMinute = toMinuteOfDay(hold.end_time);
+  const dateISO = getClubDateISO(hold.start_time);
+  const startMinute = getClubMinuteOfDay(hold.start_time);
+  const endMinute = getClubMinuteOfDay(hold.end_time);
   const durationMinutes = (endMinute - startMinute) as DurationMinutes;
   const availability = await getAvailabilityData(dateISO);
   let price: PriceResult;

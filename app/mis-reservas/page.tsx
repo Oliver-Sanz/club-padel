@@ -1,25 +1,29 @@
 import Link from "next/link";
 import { AuthCard } from "@/components/auth-card";
 import { CancelBookingButton } from "@/components/cancel-booking-button";
+import { LogoutButton } from "@/components/logout-button";
+import { formatClubDateTime } from "@/lib/club-time";
 import { PlayerBookingRow, getPlayerBookingsData } from "@/lib/player-bookings-data";
 import { formatMoney } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 function formatBookingDate(value: string) {
-  return new Intl.DateTimeFormat("es-ES", {
+  return formatClubDateTime(value, {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric"
-  }).format(new Date(value));
+  });
 }
 
 function formatBookingTimeRange(start: string, end: string) {
-  const formatter = new Intl.DateTimeFormat("es-ES", {
+  const formatOptions: Intl.DateTimeFormatOptions = {
     hour: "2-digit",
     minute: "2-digit"
-  });
+  };
 
-  return `${formatter.format(new Date(start))} - ${formatter.format(new Date(end))}`;
+  return `${formatClubDateTime(start, formatOptions)} - ${formatClubDateTime(end, formatOptions)}`;
 }
 
 function BookingCard({ booking }: { booking: PlayerBookingRow }) {
@@ -112,6 +116,9 @@ export default async function MyBookingsPage() {
         >
           Volver a reservar
         </Link>
+        {data.isLoggedIn ? (
+          <LogoutButton className="rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball" />
+        ) : null}
       </div>
 
       {!data.isConfigured ? (

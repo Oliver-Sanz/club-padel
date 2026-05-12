@@ -5,6 +5,8 @@ import { buildDateOptions } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const isConfigured = isSupabaseConfigured();
   const selectedDate = buildDateOptions(1)[0];

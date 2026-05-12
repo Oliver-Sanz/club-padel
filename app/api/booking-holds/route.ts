@@ -11,6 +11,7 @@ import {
   isWithinMaxBookingWindow
 } from "@/lib/booking-rules";
 import { getAvailabilityData } from "@/lib/availability-data";
+import { clubDateTimeToUtc } from "@/lib/club-time";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,12 +21,6 @@ type CreateHoldBody = {
   startMinute: number;
   durationMinutes: DurationMinutes;
 };
-
-function toLocalDateTime(dateISO: string, minuteOfDay: number) {
-  const date = new Date(`${dateISO}T00:00:00`);
-  date.setHours(Math.floor(minuteOfDay / 60), minuteOfDay % 60, 0, 0);
-  return date;
-}
 
 export async function POST(request: Request) {
   if (!isSupabaseConfigured()) {
@@ -49,8 +44,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const startDate = toLocalDateTime(dateISO, startMinute);
-  const endDate = toLocalDateTime(dateISO, startMinute + durationMinutes);
+  const startDate = clubDateTimeToUtc(dateISO, startMinute);
+  const endDate = clubDateTimeToUtc(dateISO, startMinute + durationMinutes);
 
   if (!isWithinMaxBookingWindow(startDate)) {
     return NextResponse.json(
@@ -138,6 +133,27 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
+    if (error.code === "23503") {
+      return NextResponse.json(
+        { error: "Tu perfil de jugador aun no esta creado. Cierra sesion, entra otra vez y reintenta." },
+        { status: 409 }
+      );
+    }
+
+    if (error.code === "23P01") {
+      return NextResponse.json(
+        { error: "Ese hueco acaba de ocuparse mientras lo guardabas. Elige otro horario." },
+        { status: 409 }
+      );
+    }
+
+    if (error.code === "42501") {
+      return NextResponse.json(
+        { error: "Tu usuario no tiene permisos completos todavia. Cierra sesion, entra otra vez y reintenta." },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { error: "No se pudo reservar temporalmente. Puede que alguien haya elegido ese hueco." },
       { status: 409 }

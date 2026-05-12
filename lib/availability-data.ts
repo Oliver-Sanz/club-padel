@@ -1,5 +1,6 @@
 import { PricingRule, ScheduleItem } from "@/lib/booking-rules";
 import { courts as mockCourts, mockScheduleItems, pricingRules as mockPricingRules } from "@/lib/mock-data";
+import { getClubDayRangeUtc, getClubMinuteOfDay } from "@/lib/club-time";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
@@ -13,20 +14,6 @@ export type AvailabilityData = {
 function timeToMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
-}
-
-function dateToMinutes(value: string) {
-  const date = new Date(value);
-  return date.getHours() * 60 + date.getMinutes();
-}
-
-function isSameLocalDate(value: string, dateISO: string) {
-  const date = new Date(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}` === dateISO;
 }
 
 function getMockAvailability(): AvailabilityData {
@@ -58,13 +45,16 @@ export async function getAvailabilityData(dateISO: string): Promise<Availability
   try {
     const supabase = await createClient();
     await supabase.rpc("expire_old_booking_holds");
+    const { start, end } = getClubDayRangeUtc(dateISO);
 
     const [courtsResult, availabilityResult, pricingResult] =
       await Promise.all([
         supabase.from("courts").select("id,name").eq("is_active", true).order("id"),
         supabase
           .from("availability_items")
-          .select("id,court_id,start_time,end_time,status,label,expires_at"),
+          .select("id,court_id,start_time,end_time,status,label,expires_at")
+          .gte("start_time", start.toISOString())
+          .lt("start_time", end.toISOString()),
         supabase.from("pricing_rules").select("*").eq("is_active", true)
       ]);
 
@@ -78,12 +68,11 @@ export async function getAvailabilityData(dateISO: string): Promise<Availability
 
     const scheduleItems: ScheduleItem[] =
       availabilityResult.data
-        ?.filter((item) => isSameLocalDate(item.start_time, dateISO))
         .map((item) => ({
           id: item.id,
           courtId: item.court_id,
-          startMinute: dateToMinutes(item.start_time),
-          endMinute: dateToMinutes(item.end_time),
+          startMinute: getClubMinuteOfDay(item.start_time),
+          endMinute: getClubMinuteOfDay(item.end_time),
           status: item.status === "confirmed" ? "confirmed" : item.status,
           label: item.label,
           expiresAt: item.expires_at ? new Date(item.expires_at) : undefined
