@@ -4,6 +4,7 @@ import {
   calculatePrice,
   getDurationOptions,
   hasReachedActiveBookingLimit,
+  isHoldStillActive,
   intervalsOverlap,
   isHoldExpired,
   isInsideClubHours,
@@ -110,5 +111,24 @@ describe("booking rules", () => {
 
     expect(isHoldExpired(new Date("2026-05-06T09:59:00"), now)).toBe(true);
     expect(isHoldExpired(new Date("2026-05-06T10:01:00"), now)).toBe(false);
+  });
+
+  it("accepts pending hold expirations received as JSON strings", () => {
+    const now = new Date("2026-05-12T10:00:00.000Z");
+
+    expect(
+      isHoldStillActive(
+        {
+          id: "hold-json",
+          courtId: 1,
+          startMinute: parseTimeToMinutes("18:00"),
+          endMinute: parseTimeToMinutes("19:00"),
+          status: "pending_payment",
+          label: "En proceso",
+          expiresAt: "2026-05-12T10:06:00.000Z"
+        },
+        now
+      )
+    ).toBe(true);
   });
 });

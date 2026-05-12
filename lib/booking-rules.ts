@@ -18,7 +18,7 @@ export type ScheduleItem = {
   endMinute: number;
   status: OccupancyStatus;
   label: string;
-  expiresAt?: Date;
+  expiresAt?: Date | string;
 };
 
 export type PricingRule = {
@@ -89,7 +89,14 @@ export function isHoldStillActive(item: ScheduleItem, now = new Date()) {
     return true;
   }
 
-  return item.expiresAt ? item.expiresAt.getTime() > now.getTime() : true;
+  if (!item.expiresAt) {
+    return true;
+  }
+
+  const expiresAtMs =
+    item.expiresAt instanceof Date ? item.expiresAt.getTime() : new Date(item.expiresAt).getTime();
+
+  return Number.isFinite(expiresAtMs) ? expiresAtMs > now.getTime() : true;
 }
 
 export function getConflictingItem(
