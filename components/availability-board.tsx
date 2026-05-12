@@ -2,6 +2,7 @@
 
 import { UIEvent, useMemo, useRef, useState } from "react";
 import {
+  DurationOption,
   getDurationOptions,
   generateTimeSlots,
   getSlotVisualStatus,
@@ -51,10 +52,26 @@ type AvailabilityBoardProps = {
   canCreateBookings: boolean;
 };
 
+function isAvailabilityData(value: unknown): value is AvailabilityData {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const data = value as Partial<AvailabilityData>;
+
+  return (
+    Array.isArray(data.courts) &&
+    Array.isArray(data.scheduleItems) &&
+    Array.isArray(data.pricingRules) &&
+    (data.source === "mock" || data.source === "supabase")
+  );
+}
+
 export function AvailabilityBoard({ initialData, canCreateBookings }: AvailabilityBoardProps) {
   const [selectedDate, setSelectedDate] = useState(() => buildDateOptions(1)[0]);
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
   const [availabilityData, setAvailabilityData] = useState(initialData);
+  const [drawerOptions, setDrawerOptions] = useState<DurationOption[]>([]);
   const [isLoadingDate, setIsLoadingDate] = useState(false);
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   const [bookingMessage, setBookingMessage] = useState("");
@@ -69,16 +86,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
   const pricingRules =
     availabilityData.pricingRules.length > 0 ? availabilityData.pricingRules : mockPricingRules;
 
-  const selectedOptions = selectedSlot
-    ? getDurationOptions({
-        dateISO: selectedSlot.dateISO,
-        courtId: selectedSlot.courtId,
-        startMinute: selectedSlot.startMinute,
-        items: scheduleItems,
-        pricingRules,
-        now
-      })
-    : [];
+  const selectedOptions = activeHold ? drawerOptions : selectedSlot ? drawerOptions : [];
 
   function syncScroll(event: UIEvent<HTMLDivElement>, originIndex: number) {
     if (isSyncing.current) {
@@ -119,6 +127,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
       dateISO: selectedDate,
       startMinute
     });
+    setDrawerOptions(options);
     setActiveHold(null);
     setBookingMessage("");
   }
@@ -126,13 +135,19 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
   async function changeDate(dateISO: string) {
     setSelectedDate(dateISO);
     setSelectedSlot(null);
+    setDrawerOptions([]);
     setActiveHold(null);
     setBookingMessage("");
     setIsLoadingDate(true);
 
     try {
       const response = await fetch(`/api/availability?date=${dateISO}`);
-      const data = (await response.json()) as AvailabilityData;
+      const data = (await response.json()) as unknown;
+
+      if (!response.ok || !isAvailabilityData(data)) {
+        throw new Error("Invalid availability response");
+      }
+
       setAvailabilityData(data);
     } catch {
       setBookingMessage("No se pudo actualizar la disponibilidad. Reintentando con datos actuales.");
@@ -144,7 +159,12 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
   async function refreshAvailability(dateISO: string) {
     try {
       const response = await fetch(`/api/availability?date=${dateISO}`);
-      const data = (await response.json()) as AvailabilityData;
+      const data = (await response.json()) as unknown;
+
+      if (!response.ok || !isAvailabilityData(data)) {
+        throw new Error("Invalid availability response");
+      }
+
       setAvailabilityData(data);
     } catch {
       setBookingMessage("No se pudo actualizar la disponibilidad. Reintentando con datos actuales.");
@@ -212,6 +232,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
       setBookingMessage("Reserva confirmada. Actualizando disponibilidad...");
       setActiveHold(null);
       setSelectedSlot(null);
+      setDrawerOptions([]);
       await changeDate(selectedDate);
     } catch {
       setBookingMessage("No se pudo conectar con el servidor. Revisa que la app siga arrancada.");
@@ -330,6 +351,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
         onConfirmBooking={createBooking}
         onClose={() => {
           setSelectedSlot(null);
+          setDrawerOptions([]);
           setActiveHold(null);
           setBookingMessage("");
         }}
