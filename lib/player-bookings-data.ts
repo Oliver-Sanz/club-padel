@@ -1,4 +1,5 @@
 import { canCancelForFree } from "@/lib/booking-rules";
+import { type ClubCopy } from "@/lib/club-branding";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,7 +23,7 @@ export type PlayerBookingsData = {
   pastBookings: PlayerBookingRow[];
 };
 
-function mapBookingStatus(status: string) {
+function mapBookingStatus(status: string, cancelledLabel = "Cancelada") {
   if (status === "confirmed") {
     return "Confirmada";
   }
@@ -32,7 +33,7 @@ function mapBookingStatus(status: string) {
   }
 
   if (status === "cancelled") {
-    return "Cancelada";
+    return cancelledLabel;
   }
 
   if (status === "expired") {
@@ -42,7 +43,7 @@ function mapBookingStatus(status: string) {
   return status;
 }
 
-export async function getPlayerBookingsData(): Promise<PlayerBookingsData> {
+export async function getPlayerBookingsData(labels?: Pick<ClubCopy["player"], "cancelledLabel" | "contactClub">): Promise<PlayerBookingsData> {
   if (!isSupabaseConfigured()) {
     return {
       isConfigured: false,
@@ -87,7 +88,7 @@ export async function getPlayerBookingsData(): Promise<PlayerBookingsData> {
         isFuture && isConfirmed
           ? canCancel
             ? "Cancelacion gratis disponible"
-            : "Faltan menos de 6 horas: contacta con el club"
+            : labels?.contactClub ?? "Faltan menos de 6 horas: contacta con el club"
           : "";
 
       return {
@@ -96,7 +97,7 @@ export async function getPlayerBookingsData(): Promise<PlayerBookingsData> {
         startTime: booking.start_time,
         endTime: booking.end_time,
         durationMinutes: booking.duration_minutes,
-        status: mapBookingStatus(booking.status),
+        status: mapBookingStatus(booking.status, labels?.cancelledLabel),
         rawStatus: booking.status,
         priceTotalCents: booking.price_total_cents,
         canCancel,

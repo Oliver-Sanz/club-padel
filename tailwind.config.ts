@@ -6,13 +6,13 @@ const config: Config = {
     extend: {
       colors: {
         court: {
-          navy: "#25476E",
-          cyan: "#33EFFF",
-          ball: "#CCFF00",
-          grey: "#D9D9D9",
-          ink: "#07111C",
-          panel: "#102A43",
-          mist: "#EAF6FA"
+          navy: "var(--court-background)",
+          cyan: "var(--court-foreground)",
+          ball: "var(--court-ball)",
+          grey: "var(--court-grey)",
+          ink: "var(--court-ink)",
+          panel: "var(--court-panel)",
+          mist: "var(--court-mist)"
         }
       },
       boxShadow: {

@@ -1,5 +1,7 @@
 import { AvailabilityBoard } from "@/components/availability-board";
 import { AuthCard } from "@/components/auth-card";
+import { ClubLogo } from "@/components/club-logo";
+import { getClubConfig } from "@/lib/club-config";
 import { getAvailabilityData } from "@/lib/availability-data";
 import { buildDateOptions } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -10,6 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const isConfigured = isSupabaseConfigured();
   const selectedDate = buildDateOptions(1)[0];
+  const clubConfig = await getClubConfig();
   const availabilityData = await getAvailabilityData(selectedDate);
   const user = isConfigured ? (await (await createClient()).auth.getUser()).data.user : null;
 
@@ -19,22 +22,32 @@ export default async function HomePage() {
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-court-ball/15 blur-2xl" />
         <div className="absolute bottom-0 left-0 h-1 w-full bg-court-ball" />
         <div className="relative z-10 max-w-3xl">
-          <p className="text-sm font-black uppercase tracking-[0.24em] text-court-cyan">
-            Club de Padel
+          <ClubLogo clubName={clubConfig.clubName} logoUrl={clubConfig.logoUrl} />
+          <p className="mt-4 text-sm font-black uppercase tracking-[0.24em] text-court-cyan">
+            {clubConfig.copy.home.eyebrow}
           </p>
           <h1 className="mt-4 text-4xl font-black tracking-[-0.04em] text-court-ball md:text-6xl">
-            Reservas claras, rapidas y sin dobles reservas.
+            {clubConfig.copy.home.title}
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-court-cyan md:text-lg">
-            Fase 2 del MVP: login con Supabase, disponibilidad preparada para datos reales y
-            fallback seguro a mocks mientras configuras las claves.
+            {clubConfig.copy.home.subtitle}
           </p>
         </div>
       </header>
 
       <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">
-        <AvailabilityBoard initialData={availabilityData} canCreateBookings={Boolean(user)} />
-        <AuthCard isConfigured={isConfigured} user={user ? { email: user.email } : null} />
+        <AvailabilityBoard
+          canCreateBookings={Boolean(user)}
+          copy={clubConfig.copy}
+          initialData={availabilityData}
+        />
+        <AuthCard
+          clubName={clubConfig.clubName}
+          copy={clubConfig.copy.auth}
+          isConfigured={isConfigured}
+          logoUrl={clubConfig.logoUrl}
+          user={user ? { email: user.email } : null}
+        />
       </div>
     </main>
   );

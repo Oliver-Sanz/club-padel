@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AuthCard } from "@/components/auth-card";
 import { CancelBookingButton } from "@/components/cancel-booking-button";
 import { LogoutButton } from "@/components/logout-button";
+import { ClubLogo } from "@/components/club-logo";
+import { getClubConfig } from "@/lib/club-config";
 import { formatClubDateTime } from "@/lib/club-time";
 import { PlayerBookingRow, getPlayerBookingsData } from "@/lib/player-bookings-data";
 import { formatMoney } from "@/lib/format";
@@ -26,7 +28,17 @@ function formatBookingTimeRange(start: string, end: string) {
   return `${formatClubDateTime(start, formatOptions)} - ${formatClubDateTime(end, formatOptions)}`;
 }
 
-function BookingCard({ booking }: { booking: PlayerBookingRow }) {
+function BookingCard({
+  booking,
+  labels
+}: {
+  booking: PlayerBookingRow;
+  labels: {
+    cancelButton: string;
+    cancelingButton: string;
+    cancelSuccess: string;
+  };
+}) {
   return (
     <article className="rounded-[1.75rem] border border-court-cyan bg-court-panel p-4 shadow-soft">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -61,7 +73,15 @@ function BookingCard({ booking }: { booking: PlayerBookingRow }) {
 
       <div className="mt-4">
         {booking.canCancel ? (
-          <CancelBookingButton bookingId={booking.id} />
+          <CancelBookingButton
+            bookingId={booking.id}
+            labels={{
+              button: labels.cancelButton,
+              canceling: labels.cancelingButton,
+              success: labels.cancelSuccess,
+              fallbackError: "No se pudo cancelar la reserva."
+            }}
+          />
         ) : booking.cancellationMessage ? (
           <p className="rounded-2xl border border-court-ball bg-court-ink px-4 py-3 text-sm font-black text-court-ball">
             {booking.cancellationMessage}
@@ -94,20 +114,25 @@ function BookingHistoryLine({ booking }: { booking: PlayerBookingRow }) {
 }
 
 export default async function MyBookingsPage() {
-  const data = await getPlayerBookingsData();
+  const clubConfig = await getClubConfig();
+  const data = await getPlayerBookingsData({
+    cancelledLabel: clubConfig.copy.player.cancelledLabel,
+    contactClub: clubConfig.copy.player.contactClub
+  });
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-4 py-6 md:px-8 md:py-10">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.22em] text-court-ball">
-            Jugador
+          <ClubLogo clubName={clubConfig.clubName} logoUrl={clubConfig.logoUrl} />
+          <p className="mt-4 text-sm font-black uppercase tracking-[0.22em] text-court-ball">
+            {clubConfig.copy.player.eyebrow}
           </p>
           <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] text-white">
-            Mis reservas
+            {clubConfig.copy.player.title}
           </h1>
           <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-court-cyan">
-            Consulta tus proximas reservas y cancela gratis hasta 6 horas antes.
+            {clubConfig.copy.player.subtitle}
           </p>
         </div>
         <Link
@@ -117,47 +142,64 @@ export default async function MyBookingsPage() {
           Volver a reservar
         </Link>
         {data.isLoggedIn ? (
-          <LogoutButton className="rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball" />
+          <LogoutButton
+            className="rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
+            label={clubConfig.copy.auth.logoutButton}
+          />
         ) : null}
       </div>
 
       {!data.isConfigured ? (
         <section className="rounded-[2rem] border border-court-ball bg-court-ink p-6 text-court-ball">
-          Configura Supabase antes de usar el espacio del jugador.
+          {clubConfig.copy.system.configurationMissing}
         </section>
       ) : null}
 
       {data.isConfigured && !data.isLoggedIn ? (
         <div className="max-w-md">
-          <AuthCard isConfigured={data.isConfigured} user={null} />
+          <AuthCard
+            clubName={clubConfig.clubName}
+            copy={clubConfig.copy.auth}
+            isConfigured={data.isConfigured}
+            logoUrl={clubConfig.logoUrl}
+            user={null}
+          />
         </div>
       ) : null}
 
       {data.isLoggedIn ? (
         <div className="space-y-8">
           <section className="rounded-[2rem] border border-court-ball bg-court-ink p-4 shadow-soft md:p-6">
-            <h2 className="text-2xl font-black text-white">Proximas reservas</h2>
+            <h2 className="text-2xl font-black text-white">{clubConfig.copy.player.upcomingTitle}</h2>
             <div className="mt-4 space-y-4">
               {data.upcomingBookings.map((booking) => (
-                <BookingCard booking={booking} key={booking.id} />
+                <BookingCard
+                  booking={booking}
+                  key={booking.id}
+                  labels={{
+                    cancelButton: clubConfig.copy.player.cancelButton,
+                    cancelingButton: clubConfig.copy.player.cancelingButton,
+                    cancelSuccess: clubConfig.copy.player.cancelSuccess
+                  }}
+                />
               ))}
               {data.upcomingBookings.length === 0 ? (
                 <p className="rounded-2xl border border-court-cyan bg-court-panel p-5 text-sm font-bold text-court-cyan">
-                  Aun no tienes reservas futuras.
+                  {clubConfig.copy.player.emptyUpcoming}
                 </p>
               ) : null}
             </div>
           </section>
 
           <section className="rounded-[2rem] border border-court-cyan bg-court-ink p-4 shadow-soft md:p-6">
-            <h2 className="text-2xl font-black text-white">Historial</h2>
+            <h2 className="text-2xl font-black text-white">{clubConfig.copy.player.historyTitle}</h2>
             <div className="mt-4 space-y-4">
               {data.pastBookings.slice(0, 6).map((booking) => (
                 <BookingHistoryLine booking={booking} key={booking.id} />
               ))}
               {data.pastBookings.length === 0 ? (
                 <p className="rounded-2xl border border-court-cyan bg-court-panel p-5 text-sm font-bold text-court-cyan">
-                  Todavia no hay historial.
+                  {clubConfig.copy.player.emptyHistory}
                 </p>
               ) : null}
             </div>

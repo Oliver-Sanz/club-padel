@@ -10,6 +10,7 @@ import {
   minutesToTime
 } from "@/lib/booking-rules";
 import { AvailabilityData } from "@/lib/availability-data";
+import { type ClubCopy } from "@/lib/club-branding";
 import { buildDateOptions } from "@/lib/format";
 import { pricingRules as mockPricingRules } from "@/lib/mock-data";
 import { BookingDrawer } from "@/components/booking-drawer";
@@ -28,15 +29,6 @@ type ActiveHold = {
   durationMinutes: 60 | 90;
 } | null;
 
-const statusCopy = {
-  available: "Libre",
-  unavailable: "Pasado",
-  confirmed: "Ocupado",
-  blocked: "Bloqueado",
-  event: "Ocupado",
-  pending_payment: "En proceso"
-};
-
 const statusClasses = {
   available:
     "border-court-cyan bg-court-navy text-court-cyan hover:border-court-ball hover:text-court-ball focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-ball",
@@ -50,6 +42,7 @@ const statusClasses = {
 type AvailabilityBoardProps = {
   initialData: AvailabilityData;
   canCreateBookings: boolean;
+  copy: ClubCopy;
 };
 
 function isAvailabilityData(value: unknown): value is AvailabilityData {
@@ -67,7 +60,7 @@ function isAvailabilityData(value: unknown): value is AvailabilityData {
   );
 }
 
-export function AvailabilityBoard({ initialData, canCreateBookings }: AvailabilityBoardProps) {
+export function AvailabilityBoard({ initialData, canCreateBookings, copy }: AvailabilityBoardProps) {
   const [selectedDate, setSelectedDate] = useState(() => buildDateOptions(1)[0]);
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
   const [availabilityData, setAvailabilityData] = useState(initialData);
@@ -85,6 +78,14 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
   const scheduleItems = availabilityData.scheduleItems;
   const pricingRules =
     availabilityData.pricingRules.length > 0 ? availabilityData.pricingRules : mockPricingRules;
+  const statusCopy = {
+    available: copy.booking.legendAvailable,
+    unavailable: "Pasado",
+    confirmed: copy.booking.legendBooked,
+    blocked: copy.booking.legendBlocked,
+    event: copy.booking.legendBooked,
+    pending_payment: copy.booking.legendInProgress
+  } as const;
 
   const selectedOptions = activeHold ? drawerOptions : selectedSlot ? drawerOptions : [];
 
@@ -150,7 +151,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
 
       setAvailabilityData(data);
     } catch {
-      setBookingMessage("No se pudo actualizar la disponibilidad. Reintentando con datos actuales.");
+      setBookingMessage(copy.booking.holdRefreshError);
     } finally {
       setIsLoadingDate(false);
     }
@@ -167,7 +168,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
 
       setAvailabilityData(data);
     } catch {
-      setBookingMessage("No se pudo actualizar la disponibilidad. Reintentando con datos actuales.");
+      setBookingMessage(copy.booking.holdRefreshError);
     }
   }
 
@@ -180,7 +181,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
       return;
     }
 
-    setBookingMessage(activeHold ? "Confirmando reserva..." : "Guardando horario 6 minutos...");
+    setBookingMessage(activeHold ? "Confirmando reserva..." : copy.booking.loadingMessage);
     setIsCreatingBooking(true);
 
     try {
@@ -209,13 +210,13 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
       };
 
       if (!response.ok) {
-        setBookingMessage(result.error ?? "No se pudo crear la reserva. Prueba con otro horario.");
+        setBookingMessage(result.error ?? copy.booking.holdRefreshError);
         return;
       }
 
       if (!activeHold) {
         if (!result.holdId || !result.expiresAt) {
-          setBookingMessage("No se pudo leer la reserva temporal.");
+          setBookingMessage(copy.booking.holdRefreshError);
           return;
         }
 
@@ -224,7 +225,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
           expiresAt: result.expiresAt,
           durationMinutes
         });
-        setBookingMessage("Horario guardado. Ahora confirma la reserva antes de que expire.");
+        setBookingMessage(copy.booking.holdSuccess);
         await refreshAvailability(selectedDate);
         return;
       }
@@ -235,7 +236,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
       setDrawerOptions([]);
       await changeDate(selectedDate);
     } catch {
-      setBookingMessage("No se pudo conectar con el servidor. Revisa que la app siga arrancada.");
+      setBookingMessage(copy.booking.holdRefreshError);
     } finally {
       setIsCreatingBooking(false);
     }
@@ -246,20 +247,24 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
       <div className="mb-5 grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">
         <div className="min-w-0">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-court-ball">
-            Disponibilidad
+            {copy.booking.eyebrow}
           </p>
           <h2 className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">
-            Elige pista y hora
+            {copy.booking.title}
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-court-cyan">
-            Scroll horizontal sincronizado: mueve cualquier pista y las tres se alinean. Los slots
-            amarillos son reservas en proceso con expiracion temporal.
+            {copy.booking.subtitle}
           </p>
           <p className="mt-3 inline-flex rounded-full border border-court-cyan bg-court-panel px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-court-cyan">
-            Datos: {availabilityData.source === "supabase" ? "Supabase" : "Mock local"}
+            Datos:{" "}
+            {availabilityData.source === "supabase"
+              ? copy.system.dataSourceSupabase
+              : copy.system.dataSourceMock}
           </p>
           {isLoadingDate ? (
-            <p className="mt-2 text-sm font-black text-court-ball">Actualizando disponibilidad...</p>
+            <p className="mt-2 text-sm font-black text-court-ball">
+              {copy.system.updatingAvailability}
+            </p>
           ) : null}
           {bookingMessage ? (
             <p className="mt-2 text-sm font-black text-court-ball">{bookingMessage}</p>
@@ -330,16 +335,16 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
 
       <div className="mt-5 grid gap-2 text-xs font-black text-court-cyan sm:grid-cols-4">
         <span className="rounded-full border border-court-cyan bg-court-navy px-3 py-2">
-          Libre
+          {copy.booking.legendAvailable}
         </span>
         <span className="rounded-full border border-court-cyan/70 bg-court-ink px-3 py-2 text-court-cyan">
-          Ocupado
+          {copy.booking.legendBooked}
         </span>
         <span className="rounded-full border border-court-ball bg-court-ink px-3 py-2 text-court-ball">
-          Bloqueado
+          {copy.booking.legendBlocked}
         </span>
         <span className="rounded-full border border-court-ball bg-court-ink px-3 py-2 text-court-ball">
-          En proceso
+          {copy.booking.legendInProgress}
         </span>
       </div>
 
@@ -357,6 +362,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings }: Availabili
         }}
         options={selectedOptions}
         selectedSlot={selectedSlot}
+        copy={copy.booking}
       />
     </section>
   );

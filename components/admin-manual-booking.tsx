@@ -9,14 +9,16 @@ import {
   minutesToTime
 } from "@/lib/booking-rules";
 import { AvailabilityData } from "@/lib/availability-data";
+import { type ClubCopy } from "@/lib/club-branding";
 import { formatMoney, formatRange } from "@/lib/format";
 
 type AdminManualBookingProps = {
   selectedDate: string;
   courts: Array<{ id: number; name: string }>;
+  copy: ClubCopy["admin"];
 };
 
-export function AdminManualBooking({ selectedDate, courts }: AdminManualBookingProps) {
+export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBookingProps) {
   const router = useRouter();
   const [courtId, setCourtId] = useState(() => courts[0]?.id ?? 1);
   const [startMinute, setStartMinute] = useState(8 * 60);
@@ -201,14 +203,13 @@ export function AdminManualBooking({ selectedDate, courts }: AdminManualBookingP
     <section className="mb-6 rounded-[1.75rem] border border-court-ball bg-court-panel p-4 md:p-5">
       <div className="mb-4">
         <p className="text-xs font-black uppercase tracking-[0.18em] text-court-ball">
-          Crear reserva manual
+          {copy.manualTitle}
         </p>
         <h2 className="mt-1 text-2xl font-black tracking-[-0.03em] text-white">
           Escoge pista, hora y duracion
         </h2>
         <p className="mt-2 text-sm font-semibold leading-6 text-court-cyan">
-          El dia se elige en el calendario superior. Esta accion crea una reserva confirmada desde
-          el club, sin pasar por pago.
+          {copy.manualSubtitle}
         </p>
       </div>
 

@@ -8,6 +8,14 @@
   --muted: #33efff;
   --card: rgba(7, 17, 28, 0.58);
   --line: rgba(204, 255, 0, 0.6);
+  --court-background: #25476e;
+  --court-foreground: #33efff;
+  --court-ball: #ccff00;
+  --court-grey: #d9d9d9;
+  --court-ink: #07111c;
+  --court-panel: #102a43;
+  --court-mist: #eaf6fa;
+  --court-line: rgba(204, 255, 0, 0.6);
 }
 
 * {
@@ -23,10 +31,10 @@ body {
   margin: 0;
   color: var(--foreground);
   background:
-    radial-gradient(circle at 50% -14rem, rgba(204, 255, 0, 0.3), transparent 22rem),
-    radial-gradient(circle at 12% 18%, rgba(51, 239, 255, 0.14), transparent 20rem),
-    linear-gradient(145deg, #07111c 0%, #25476e 48%, #102a43 100%),
-    #25476e;
+    radial-gradient(circle at 50% -14rem, color-mix(in srgb, var(--court-ball) 30%, transparent), transparent 22rem),
+    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--court-foreground) 14%, transparent), transparent 20rem),
+    linear-gradient(145deg, var(--court-ink) 0%, var(--court-background) 48%, var(--court-panel) 100%),
+    var(--court-background);
 }
 
 body::before {
@@ -36,8 +44,8 @@ body::before {
   pointer-events: none;
   content: "";
   background:
-    linear-gradient(108deg, transparent 0 32%, rgba(217, 217, 217, 0.08) 32% 36%, transparent 36% 100%),
-    linear-gradient(78deg, transparent 0 68%, rgba(217, 217, 217, 0.06) 68% 71%, transparent 71% 100%);
+    linear-gradient(108deg, transparent 0 32%, color-mix(in srgb, var(--court-grey) 8%, transparent) 32% 36%, transparent 36% 100%),
+    linear-gradient(78deg, transparent 0 68%, color-mix(in srgb, var(--court-grey) 6%, transparent) 68% 71%, transparent 71% 100%);
   opacity: 0.7;
 }
 
@@ -48,7 +56,7 @@ select {
 }
 
 .scrollbar-soft {
-  scrollbar-color: rgba(51, 239, 255, 0.5) transparent;
+  scrollbar-color: color-mix(in srgb, var(--court-foreground) 50%, transparent) transparent;
   scrollbar-width: thin;
 }
 
@@ -57,6 +65,6 @@ select {
 }
 
 .scrollbar-soft::-webkit-scrollbar-thumb {
-  background: rgba(51, 239, 255, 0.5);
+  background: color-mix(in srgb, var(--court-foreground) 50%, transparent);
   border-radius: 999px;
 }

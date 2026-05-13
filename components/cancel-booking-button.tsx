@@ -5,9 +5,23 @@ import { useState } from "react";
 
 type CancelBookingButtonProps = {
   bookingId: string;
+  labels?: {
+    button: string;
+    canceling: string;
+    success: string;
+    fallbackError: string;
+  };
 };
 
-export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
+export function CancelBookingButton({
+  bookingId,
+  labels = {
+    button: "Cancelar reserva",
+    canceling: "Cancelando...",
+    success: "Reserva cancelada.",
+    fallbackError: "No se pudo cancelar la reserva."
+  }
+}: CancelBookingButtonProps) {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
@@ -23,11 +37,11 @@ export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
       const result = (await response.json().catch(() => ({}))) as { error?: string };
 
       if (!response.ok) {
-        setMessage(result.error ?? "No se pudo cancelar la reserva.");
+        setMessage(result.error ?? labels.fallbackError);
         return;
       }
 
-      setMessage("Reserva cancelada.");
+      setMessage(labels.success);
       router.refresh();
     } catch {
       setMessage("No se pudo conectar con el servidor.");
@@ -44,7 +58,7 @@ export function CancelBookingButton({ bookingId }: CancelBookingButtonProps) {
         onClick={cancelBooking}
         type="button"
       >
-        {isCancelling ? "Cancelando..." : "Cancelar reserva"}
+        {isCancelling ? labels.canceling : labels.button}
       </button>
       {message ? <p className="mt-2 text-sm font-black text-court-ball">{message}</p> : null}
     </div>

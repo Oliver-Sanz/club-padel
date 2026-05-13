@@ -1,0 +1,230 @@
+import type { CSSProperties } from "react";
+
+export type ClubThemeColors = {
+  background: string;
+  foreground: string;
+  accent: string;
+  grey: string;
+  ink: string;
+  panel: string;
+  mist: string;
+  line: string;
+};
+
+export type ClubCopy = {
+  home: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+  };
+  auth: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    googleButton: string;
+    emailButton: string;
+    helper: string;
+    loggedInTitle: string;
+    loggedInSubtitle: string;
+    reservationsButton: string;
+    adminButton: string;
+    logoutButton: string;
+    missingConfig: string;
+  };
+  booking: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    buttonLabel: string;
+    activeHoldLabel: string;
+    holdSuccess: string;
+    holdRefreshError: string;
+    loadingMessage: string;
+    legendAvailable: string;
+    legendBooked: string;
+    legendBlocked: string;
+    legendInProgress: string;
+  };
+  admin: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    backButton: string;
+    settingsTitle: string;
+    settingsSubtitle: string;
+    reservationsTitle: string;
+    reservationsSubtitle: string;
+    manualTitle: string;
+    manualSubtitle: string;
+  };
+  player: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    upcomingTitle: string;
+    historyTitle: string;
+    emptyUpcoming: string;
+    emptyHistory: string;
+    cancelButton: string;
+    cancelingButton: string;
+    cancelSuccess: string;
+    contactClub: string;
+    cancelledLabel: string;
+  };
+  system: {
+    configurationMissing: string;
+    loadingAvailability: string;
+    dataSourceMock: string;
+    dataSourceSupabase: string;
+    updatingAvailability: string;
+  };
+};
+
+export type ClubConfig = {
+  clubId: string | null;
+  slug: string;
+  clubName: string;
+  logoPath: string | null;
+  logoUrl: string | null;
+  colors: ClubThemeColors;
+  copy: ClubCopy;
+};
+
+export const DEFAULT_COLORS: ClubThemeColors = {
+  background: "#25476E",
+  foreground: "#33EFFF",
+  accent: "#CCFF00",
+  grey: "#D9D9D9",
+  ink: "#07111C",
+  panel: "#102A43",
+  mist: "#EAF6FA",
+  line: "#CCFF00"
+};
+
+export const DEFAULT_COPY: ClubCopy = {
+  home: {
+    eyebrow: "Club de Padel",
+    title: "Reservas claras, rapidas y sin dobles reservas.",
+    subtitle:
+      "Fase 2 del MVP: login con Supabase, disponibilidad preparada para datos reales y fallback seguro a mocks mientras configuras las claves."
+  },
+  auth: {
+    eyebrow: "Acceso Fase 2",
+    title: "Reserva con tu cuenta",
+    subtitle:
+      "Puedes ver disponibilidad sin iniciar sesion. Para reservar, usaremos Google o un enlace por email.",
+    googleButton: "Continuar con Google",
+    emailButton: "Recibir enlace por email",
+    helper:
+      "Supabase todavia no esta configurado. La app seguira usando datos mock hasta que rellenes `.env.local`.",
+    loggedInTitle: "Estas dentro",
+    loggedInSubtitle: "Sesion activa",
+    reservationsButton: "Mis reservas",
+    adminButton: "Ir a admin",
+    logoutButton: "Cerrar sesion",
+    missingConfig: "Configura Supabase para activar el acceso real."
+  },
+  booking: {
+    eyebrow: "Disponibilidad",
+    title: "Elige pista y hora",
+    subtitle:
+      "Scroll horizontal sincronizado: mueve cualquier pista y las tres se alinean. Los slots amarillos son reservas en proceso con expiracion temporal.",
+    buttonLabel: "Guardar 6 minutos",
+    activeHoldLabel: "Reserva temporal activa",
+    holdSuccess: "Horario guardado. Ahora confirma la reserva antes de que expire.",
+    holdRefreshError: "No se pudo actualizar la disponibilidad. Reintentando con datos actuales.",
+    loadingMessage: "Actualizando disponibilidad...",
+    legendAvailable: "Libre",
+    legendBooked: "Ocupado",
+    legendBlocked: "Bloqueado",
+    legendInProgress: "En proceso"
+  },
+  admin: {
+    eyebrow: "Admin",
+    title: "Reservas del club",
+    subtitle: "Vista de todas las reservas activas futuras, ordenadas por fecha y pista.",
+    backButton: "Volver a reservas",
+    settingsTitle: "Branding y textos",
+    settingsSubtitle:
+      "Ajusta el nombre, logo, colores y textos visibles de la web sin tocar el codigo.",
+    reservationsTitle: "Reservas del club",
+    reservationsSubtitle:
+      "Vista de todas las reservas activas futuras, ordenadas por fecha y pista.",
+    manualTitle: "Crear reserva manual",
+    manualSubtitle:
+      "El dia se elige en el calendario superior. Esta accion crea una reserva confirmada desde el club, sin pasar por pago."
+  },
+  player: {
+    eyebrow: "Jugador",
+    title: "Mis reservas",
+    subtitle: "Consulta tus proximas reservas y cancela gratis hasta 6 horas antes.",
+    upcomingTitle: "Proximas reservas",
+    historyTitle: "Historial",
+    emptyUpcoming: "Aun no tienes reservas futuras.",
+    emptyHistory: "Todavia no hay historial.",
+    cancelButton: "Cancelar reserva",
+    cancelingButton: "Cancelando...",
+    cancelSuccess: "Reserva cancelada.",
+    contactClub: "Faltan menos de 6 horas: contacta con el club",
+    cancelledLabel: "Cancelada"
+  },
+  system: {
+    configurationMissing: "Configura Supabase antes de usar esta pagina.",
+    loadingAvailability: "Cargando disponibilidad...",
+    dataSourceMock: "Mock local",
+    dataSourceSupabase: "Supabase",
+    updatingAvailability: "Actualizando disponibilidad..."
+  }
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+export function mergeDeep<T>(base: T, override: unknown): T {
+  if (!isRecord(base) || !isRecord(override)) {
+    return (override ?? base) as T;
+  }
+
+  const result: Record<string, unknown> = { ...base };
+
+  for (const [key, value] of Object.entries(override)) {
+    const baseValue = (base as Record<string, unknown>)[key];
+
+    if (isRecord(baseValue) && isRecord(value)) {
+      result[key] = mergeDeep(baseValue, value);
+      continue;
+    }
+
+    if (value !== undefined && value !== null) {
+      result[key] = value;
+    }
+  }
+
+  return result as T;
+}
+
+export function getClubThemeStyle(colors: ClubThemeColors): CSSProperties {
+  return {
+    "--court-background": colors.background,
+    "--court-foreground": colors.foreground,
+    "--court-ball": colors.accent,
+    "--court-grey": colors.grey,
+    "--court-ink": colors.ink,
+    "--court-panel": colors.panel,
+    "--court-mist": colors.mist,
+    "--court-line": colors.line
+  } as CSSProperties;
+}
+
+export function getDefaultClubConfig(): ClubConfig {
+  return {
+    clubId: null,
+    slug: "default",
+    clubName: "Club de Padel",
+    logoPath: null,
+    logoUrl: null,
+    colors: DEFAULT_COLORS,
+    copy: DEFAULT_COPY
+  };
+}

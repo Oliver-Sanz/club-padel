@@ -1,8 +1,9 @@
 type LogoutButtonProps = {
   className?: string;
+  label?: string;
 };
 
-export function LogoutButton({ className }: LogoutButtonProps) {
+export function LogoutButton({ className, label = "Cerrar sesion" }: LogoutButtonProps) {
   return (
     <form action="/auth/logout" method="post">
       <button
@@ -12,7 +13,7 @@ export function LogoutButton({ className }: LogoutButtonProps) {
         }
         type="submit"
       >
-        Cerrar sesion
+        {label}
       </button>
     </form>
   );

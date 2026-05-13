@@ -4,13 +4,18 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { type ClubCopy } from "@/lib/club-branding";
+import { ClubLogo } from "@/components/club-logo";
 
 type AuthCardProps = {
   isConfigured: boolean;
   user: Pick<User, "email"> | null;
+  clubName: string;
+  logoUrl: string | null;
+  copy: ClubCopy["auth"];
 };
 
-export function AuthCard({ isConfigured, user }: AuthCardProps) {
+export function AuthCard({ isConfigured, user, clubName, logoUrl, copy }: AuthCardProps) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -64,29 +69,30 @@ export function AuthCard({ isConfigured, user }: AuthCardProps) {
   if (user) {
     return (
       <section className="rounded-[2rem] border border-court-cyan bg-court-ink p-5 shadow-soft">
-        <p className="text-sm font-black uppercase tracking-[0.22em] text-court-ball">
-          Sesion activa
+        <ClubLogo clubName={clubName} logoUrl={logoUrl} />
+        <p className="mt-4 text-sm font-black uppercase tracking-[0.22em] text-court-ball">
+          {copy.loggedInSubtitle}
         </p>
-        <h2 className="mt-2 text-2xl font-black text-white">Estas dentro</h2>
+        <h2 className="mt-2 text-2xl font-black text-white">{copy.loggedInTitle}</h2>
         <p className="mt-2 text-sm font-semibold text-court-cyan">{user.email}</p>
         <Link
           className="mt-4 block w-full rounded-2xl bg-court-ball px-4 py-3 text-center text-sm font-black text-court-ink shadow-glow transition hover:translate-y-[-1px]"
           href="/mis-reservas"
         >
-          Mis reservas
+          {copy.reservationsButton}
         </Link>
         <Link
           className="mt-3 block w-full rounded-2xl border border-court-cyan px-4 py-3 text-center text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
           href="/admin"
         >
-          Ir a admin
+          {copy.adminButton}
         </Link>
         <form action="/auth/logout" className="mt-4" method="post">
           <button
             className="w-full rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
             type="submit"
           >
-            Cerrar sesion
+            {copy.logoutButton}
           </button>
         </form>
       </section>
@@ -95,19 +101,16 @@ export function AuthCard({ isConfigured, user }: AuthCardProps) {
 
   return (
     <section className="rounded-[2rem] border border-court-cyan bg-court-ink p-5 shadow-soft">
-      <p className="text-sm font-black uppercase tracking-[0.22em] text-court-ball">
-        Acceso Fase 2
+      <ClubLogo clubName={clubName} logoUrl={logoUrl} />
+      <p className="mt-4 text-sm font-black uppercase tracking-[0.22em] text-court-ball">
+        {copy.eyebrow}
       </p>
-      <h2 className="mt-2 text-2xl font-black text-white">Reserva con tu cuenta</h2>
-      <p className="mt-2 text-sm font-semibold leading-6 text-court-cyan">
-        Puedes ver disponibilidad sin iniciar sesion. Para reservar, usaremos Google o un enlace por
-        email.
-      </p>
+      <h2 className="mt-2 text-2xl font-black text-white">{copy.title}</h2>
+      <p className="mt-2 text-sm font-semibold leading-6 text-court-cyan">{copy.subtitle}</p>
 
       {!isConfigured ? (
         <div className="mt-4 rounded-2xl border border-court-ball bg-court-panel p-4 text-sm font-bold text-court-ball">
-          Supabase todavia no esta configurado. La app seguira usando datos mock hasta que rellenes
-          `.env.local`.
+          {copy.helper}
         </div>
       ) : null}
 
@@ -117,7 +120,7 @@ export function AuthCard({ isConfigured, user }: AuthCardProps) {
         onClick={loginWithGoogle}
         type="button"
       >
-        Continuar con Google
+        {copy.googleButton}
       </button>
 
       <form className="mt-3 space-y-3" onSubmit={loginWithEmail}>
@@ -139,7 +142,7 @@ export function AuthCard({ isConfigured, user }: AuthCardProps) {
           disabled={!isConfigured || isLoading}
           type="submit"
         >
-          {isLoading ? "Enviando..." : "Recibir enlace por email"}
+          {isLoading ? "Enviando..." : copy.emailButton}
         </button>
       </form>
 

@@ -31,6 +31,46 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["admin_blocks"]["Insert"]>;
         Relationships: [];
       };
+      club_settings: {
+        Row: {
+          club_id: string;
+          colors: Json;
+          copy: Json;
+          logo_path: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          club_id: string;
+          colors?: Json;
+          copy?: Json;
+          logo_path?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["club_settings"]["Insert"]>;
+        Relationships: [];
+      };
+      clubs: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["clubs"]["Insert"]>;
+        Relationships: [];
+      };
       bookings: {
         Row: {
           id: string;

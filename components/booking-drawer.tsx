@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { DurationMinutes, DurationOption, minutesToTime } from "@/lib/booking-rules";
 import { formatDateLabel, formatMoney, formatRange } from "@/lib/format";
+import { type ClubCopy } from "@/lib/club-branding";
 
 type SelectedSlot = {
   courtName: string;
@@ -20,6 +21,7 @@ type BookingDrawerProps = {
     expiresAt: string;
     durationMinutes: DurationMinutes;
   } | null;
+  copy: ClubCopy["booking"];
   onClose: () => void;
   onConfirmBooking: (duration: DurationMinutes) => Promise<void>;
 };
@@ -31,6 +33,7 @@ export function BookingDrawer({
   message,
   isSubmitting,
   activeHold,
+  copy,
   onClose,
   onConfirmBooking
 }: BookingDrawerProps) {
@@ -78,14 +81,12 @@ export function BookingDrawer({
       <section className="w-full rounded-[2rem] border border-court-ball bg-court-panel p-5 shadow-soft md:max-w-xl md:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-court-ball">
-              Reserva simulada
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-court-ball">{copy.eyebrow}</p>
             <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
               {selectedSlot.courtName}
             </h2>
             <p className="mt-1 text-sm text-court-cyan">
-              {formatDateLabel(selectedSlot.dateISO)} a las {minutesToTime(selectedSlot.startMinute)}
+              {copy.title} · {formatDateLabel(selectedSlot.dateISO)} a las {minutesToTime(selectedSlot.startMinute)}
             </p>
           </div>
           <button
@@ -100,7 +101,7 @@ export function BookingDrawer({
         {activeHold ? (
           <div className="mb-4 rounded-2xl border border-court-ball bg-court-ink p-4 text-center shadow-glow">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-court-ball">
-              Reserva temporal activa
+              {copy.activeHoldLabel}
             </p>
             <p className="mt-2 text-3xl font-black text-white">
               {minutesLeft}:{paddedSecondsLeft}
@@ -178,7 +179,7 @@ export function BookingDrawer({
             : canCreateBookings
               ? activeHold
                 ? "Confirmar reserva"
-                : "Guardar 6 minutos"
+                : copy.buttonLabel
               : "Inicia sesion para reservar"}
         </button>
 
