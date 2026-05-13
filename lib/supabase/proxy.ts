@@ -28,7 +28,21 @@ export async function updateSession(request: NextRequest) {
     }
   });
 
-  await supabase.auth.getUser();
+  const { error } = await supabase.auth.getUser();
+
+  if (error?.code === "refresh_token_not_found") {
+    const authCookies = request.cookies
+      .getAll()
+      .filter((cookie) => cookie.name.startsWith("sb-"));
+
+    authCookies.forEach((cookie) => {
+      request.cookies.delete(cookie.name);
+      supabaseResponse.cookies.set(cookie.name, "", {
+        maxAge: 0,
+        path: "/"
+      });
+    });
+  }
 
   return supabaseResponse;
 }

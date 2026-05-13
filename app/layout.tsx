@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "@fontsource-variable/inter";
 import { getClubConfig } from "@/lib/club-config";
 import { getClubThemeStyle } from "@/lib/club-branding";
 import "./globals.css";
@@ -17,7 +18,9 @@ export default async function RootLayout({
 
   return (
     <html lang="es">
-      <body style={getClubThemeStyle(clubConfig.colors)}>{children}</body>
+      <body className="antialiased" style={getClubThemeStyle(clubConfig.colors)}>
+        {children}
+      </body>
     </html>
   );
 }

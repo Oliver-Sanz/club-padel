@@ -24,11 +24,14 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
+  font-family: "Inter Variable", system-ui, sans-serif;
   color: var(--foreground);
   background:
     radial-gradient(circle at 50% -14rem, color-mix(in srgb, var(--court-ball) 30%, transparent), transparent 22rem),
@@ -53,6 +56,52 @@ button,
 input,
 select {
   font: inherit;
+}
+
+@layer components {
+  .type-hero {
+    @apply text-4xl font-bold tracking-[0em] sm:text-5xl lg:text-6xl;
+  }
+
+  .type-section {
+    @apply text-3xl font-bold tracking-[0em] md:text-4xl;
+  }
+
+  .type-card {
+    @apply text-2xl font-black tracking-[0.05em];
+  }
+
+  .type-body {
+    @apply text-sm font-semibold leading-6 tracking-[0em];
+  }
+
+  .type-body-lg {
+    @apply text-base font-semibold leading-7 tracking-[0em] md:text-lg;
+  }
+
+  .type-body-strong {
+    @apply text-sm font-bold leading-6 tracking-[0em];
+  }
+
+  .type-label {
+    @apply text-xs font-black uppercase tracking-[0.18em];
+  }
+
+  .type-badge {
+    @apply text-[11px] font-black uppercase tracking-[0.12em];
+  }
+
+  .type-button {
+    @apply text-sm font-black tracking-[0em];
+  }
+
+  .type-note {
+    @apply text-xs font-semibold leading-5 tracking-[0em];
+  }
+
+  .type-display {
+    @apply text-3xl font-black tracking-[0em];
+  }
 }
 
 .scrollbar-soft {

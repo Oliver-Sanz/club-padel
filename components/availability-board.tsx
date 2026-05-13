@@ -246,28 +246,28 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
     <section className="min-w-0 rounded-[2rem] border border-court-ball bg-court-ink p-3 shadow-soft md:p-6">
       <div className="mb-5 grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">
         <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-court-ball">
+          <p className="type-label text-court-ball">
             {copy.booking.eyebrow}
           </p>
-          <h2 className="mt-1 text-2xl font-black tracking-tight text-white md:text-3xl">
+          <h2 className="mt-1 type-card text-white md:text-3xl">
             {copy.booking.title}
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-court-cyan">
+          <p className="mt-2 max-w-2xl type-body text-court-cyan">
             {copy.booking.subtitle}
           </p>
-          <p className="mt-3 inline-flex rounded-full border border-court-cyan bg-court-panel px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-court-cyan">
+          <p className="mt-3 inline-flex rounded-full border border-court-cyan bg-court-panel px-3 py-1 type-badge text-court-cyan">
             Datos:{" "}
             {availabilityData.source === "supabase"
               ? copy.system.dataSourceSupabase
               : copy.system.dataSourceMock}
           </p>
           {isLoadingDate ? (
-            <p className="mt-2 text-sm font-black text-court-ball">
+            <p className="mt-2 type-body-strong text-court-ball">
               {copy.system.updatingAvailability}
             </p>
           ) : null}
           {bookingMessage ? (
-            <p className="mt-2 text-sm font-black text-court-ball">{bookingMessage}</p>
+            <p className="mt-2 type-body-strong text-court-ball">{bookingMessage}</p>
           ) : null}
         </div>
 
@@ -280,8 +280,8 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
         {courts.map((court, courtIndex) => (
           <article className="min-w-0 rounded-3xl border border-court-ball bg-court-panel p-3" key={court.id}>
             <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 className="text-lg font-black text-white">{court.name}</h3>
-              <span className="rounded-full bg-court-ball px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-court-ink">
+              <h3 className="type-body-strong text-white">{court.name}</h3>
+              <span className="rounded-full bg-court-ball px-3 py-1 type-badge text-court-ink">
                 08:00-23:00
               </span>
             </div>
@@ -320,8 +320,8 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
                       onClick={() => selectSlot(court.id, court.name, startMinute)}
                       type="button"
                     >
-                      <span className="block text-sm font-black">{minutesToTime(startMinute)}</span>
-                      <span className="mt-3 block text-[11px] font-black uppercase tracking-[0.13em]">
+                      <span className="block type-body-strong">{minutesToTime(startMinute)}</span>
+                      <span className="mt-3 block type-badge">
                         {statusCopy[slotStatus]}
                       </span>
                     </button>
@@ -333,7 +333,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
         ))}
       </div>
 
-      <div className="mt-5 grid gap-2 text-xs font-black text-court-cyan sm:grid-cols-4">
+      <div className="mt-5 grid gap-2 type-badge text-court-cyan sm:grid-cols-4">
         <span className="rounded-full border border-court-cyan bg-court-navy px-3 py-2">
           {copy.booking.legendAvailable}
         </span>

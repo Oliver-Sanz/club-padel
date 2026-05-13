@@ -131,13 +131,13 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <ClubLogo clubName={clubConfig.clubName} logoUrl={clubConfig.logoUrl} />
-          <p className="mt-4 text-sm font-black uppercase tracking-[0.22em] text-court-ball">
+          <p className="mt-4 type-label text-court-ball">
             {clubConfig.copy.admin.eyebrow}
           </p>
-          <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] text-white">
+          <h1 className="mt-2 type-section text-white">
             {view === "branding" ? clubConfig.copy.admin.settingsTitle : clubConfig.copy.admin.title}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-court-cyan">
+          <p className="mt-2 max-w-2xl type-body text-court-cyan">
             {view === "branding"
               ? clubConfig.copy.admin.settingsSubtitle
               : clubConfig.copy.admin.subtitle}
@@ -145,14 +145,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         </div>
         <div className="flex flex-wrap gap-3">
           <Link
-            className="rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
+            className="rounded-2xl border border-court-cyan px-4 py-3 type-button text-court-cyan transition hover:border-court-ball hover:text-court-ball"
             href="/"
           >
             {clubConfig.copy.admin.backButton}
           </Link>
           {data.isLoggedIn ? (
             <LogoutButton
-              className="rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
+              className="rounded-2xl border border-court-cyan px-4 py-3 type-button text-court-cyan transition hover:border-court-ball hover:text-court-ball"
               label={clubConfig.copy.auth.logoutButton}
             />
           ) : null}
@@ -162,7 +162,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <div className="mb-6 flex gap-3">
         <Link
           className={[
-            "rounded-2xl border px-4 py-3 text-sm font-black transition",
+            "rounded-2xl border px-4 py-3 type-button transition",
             view === "bookings"
               ? "border-court-ball bg-court-ball text-court-ink shadow-glow"
               : "border-court-cyan text-court-cyan hover:border-court-ball hover:text-court-ball"
@@ -173,7 +173,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         </Link>
         <Link
           className={[
-            "rounded-2xl border px-4 py-3 text-sm font-black transition",
+            "rounded-2xl border px-4 py-3 type-button transition",
             view === "branding"
               ? "border-court-ball bg-court-ball text-court-ink shadow-glow"
               : "border-court-cyan text-court-cyan hover:border-court-ball hover:text-court-ball"
@@ -217,13 +217,13 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             />
 
             <div className="rounded-[1.75rem] border border-court-cyan bg-court-panel p-4 md:p-5">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-court-ball">
+              <p className="type-label text-court-ball">
                 Mostrando desde
               </p>
-              <h2 className="mt-2 text-2xl font-black capitalize tracking-[-0.03em] text-white">
+              <h2 className="mt-2 type-card capitalize text-white">
                 {formatAdminDayLabel(data.selectedDate)}
               </h2>
-              <p className="mt-2 text-sm font-semibold leading-6 text-court-cyan">
+              <p className="mt-2 type-body text-court-cyan">
                 El calendario marca el primer dia del listado. Debajo seguiras viendo las reservas
                 futuras ordenadas por dia, no solo las de la fecha seleccionada.
               </p>
@@ -238,7 +238,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
           <form className="mb-6 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
             <input name="date" type="hidden" value={data.selectedDate} />
-            <label className="grid gap-2 text-sm font-black text-court-cyan">
+            <label className="grid gap-2 type-body-strong text-court-cyan">
               Pista
               <select
                 className="rounded-2xl border border-court-cyan bg-court-panel px-4 py-3 text-white outline-none focus:border-court-ball"
@@ -254,7 +254,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               </select>
             </label>
             <button
-              className="rounded-2xl bg-court-ball px-5 py-3 text-sm font-black text-court-ink shadow-glow"
+              className="rounded-2xl bg-court-ball px-5 py-3 type-button text-court-ink shadow-glow"
               type="submit"
             >
               Filtrar
@@ -268,8 +268,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             <div className="grid min-w-[920px] grid-cols-[56px_repeat(7,minmax(0,1fr))_56px] gap-2">
               <a
                 aria-label="Ver 7 dias anteriores"
-                className="grid place-items-center rounded-2xl border border-court-cyan text-3xl font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
-            href={buildAdminHref(previousWindowDate, data.selectedCourt) as any}
+                className="grid place-items-center rounded-2xl border border-court-cyan type-display text-court-cyan transition hover:border-court-ball hover:text-court-ball"
+                href={buildAdminHref(previousWindowDate, data.selectedCourt) as any}
               >
                 ‹
               </a>
@@ -279,7 +279,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 return (
                   <a
                     className={[
-                      "relative rounded-2xl px-3 py-4 text-center text-sm font-black capitalize transition",
+                      "relative rounded-2xl px-3 py-4 text-center type-button capitalize transition",
                       isSelected
                         ? "bg-court-ball text-court-ink shadow-glow"
                         : "text-court-cyan hover:bg-court-cyan/10 hover:text-court-ball"
@@ -290,7 +290,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                     <span className="block">{formatTabLabel(tab.dateISO)}</span>
                     <span
                       className={[
-                        "mt-2 inline-flex rounded-full px-2 py-1 text-[11px] uppercase tracking-[0.12em]",
+                        "mt-2 inline-flex rounded-full px-2 py-1 type-badge",
                         isSelected ? "bg-court-ink text-court-ball" : "bg-court-ink text-court-cyan"
                       ].join(" ")}
                     >
@@ -301,7 +301,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               })}
               <a
                 aria-label="Ver 7 dias siguientes"
-                className="grid place-items-center rounded-2xl border border-court-cyan text-3xl font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
+                className="grid place-items-center rounded-2xl border border-court-cyan type-display text-court-cyan transition hover:border-court-ball hover:text-court-ball"
                 href={buildAdminHref(nextWindowDate, data.selectedCourt) as any}
               >
                 ›
@@ -313,14 +313,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             {bookingGroups.map((group) => (
               <section className="space-y-3" key={group.dateISO}>
                 <div className="mb-3 rounded-2xl border border-court-ball bg-court-panel px-4 py-3">
-                  <p className="text-sm font-black uppercase tracking-[0.16em] text-court-ball">
+                  <p className="type-label text-court-ball">
                     {group.label}
                   </p>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[760px] border-separate border-spacing-y-2 text-left">
-                    <thead className="text-xs font-black uppercase tracking-[0.16em] text-court-cyan">
+                    <thead className="type-label text-court-cyan">
                       <tr>
                         <th className="px-3 py-2">Hora</th>
                         <th className="px-3 py-2">Pista</th>
@@ -331,7 +331,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                     </thead>
                     <tbody>
                       {group.bookings.map((booking) => (
-                        <tr className="bg-court-panel text-sm font-bold text-white" key={booking.id}>
+                        <tr className="bg-court-panel type-body-strong text-white" key={booking.id}>
                           <td className="rounded-l-2xl px-3 py-4 text-court-ball">
                             {formatTime(booking.startTime)}
                           </td>
@@ -353,7 +353,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               </section>
             ))}
             {bookingGroups.length === 0 ? (
-              <p className="rounded-2xl border border-court-cyan bg-court-panel p-5 text-sm font-bold text-court-cyan">
+              <p className="rounded-2xl border border-court-cyan bg-court-panel p-5 type-body-strong text-court-cyan">
                 No hay reservas para este filtro.
               </p>
             ) : null}

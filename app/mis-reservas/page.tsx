@@ -43,23 +43,23 @@ function BookingCard({
     <article className="rounded-[1.75rem] border border-court-cyan bg-court-panel p-4 shadow-soft">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-court-ball">
+          <p className="type-label text-court-ball">
             {booking.status}
           </p>
-          <h2 className="mt-2 text-2xl font-black capitalize text-white">
+          <h2 className="mt-2 type-card capitalize text-white">
             {formatBookingDate(booking.startTime)}
           </h2>
-          <p className="mt-2 text-lg font-black text-court-cyan">
+          <p className="mt-2 type-body-strong text-court-cyan">
             {formatBookingTimeRange(booking.startTime, booking.endTime)}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-court-ball bg-court-ink p-4 text-sm font-black text-court-ball">
+        <div className="rounded-2xl border border-court-ball bg-court-ink p-4 type-button text-court-ball">
           {formatMoney(booking.priceTotalCents)}
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm font-bold text-court-cyan md:grid-cols-3">
+      <div className="mt-4 grid gap-3 type-body-strong text-court-cyan md:grid-cols-3">
         <p className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3">
           {booking.courtName}
         </p>
@@ -83,7 +83,7 @@ function BookingCard({
             }}
           />
         ) : booking.cancellationMessage ? (
-          <p className="rounded-2xl border border-court-ball bg-court-ink px-4 py-3 text-sm font-black text-court-ball">
+          <p className="rounded-2xl border border-court-ball bg-court-ink px-4 py-3 type-body-strong text-court-ball">
             {booking.cancellationMessage}
           </p>
         ) : null}
@@ -97,8 +97,8 @@ function BookingHistoryLine({ booking }: { booking: PlayerBookingRow }) {
   const detailClassName = isCancelled ? "line-through decoration-court-ball decoration-2" : "";
 
   return (
-    <article className="rounded-2xl border border-court-cyan/60 bg-court-panel px-4 py-3 text-sm font-bold text-court-cyan">
-      <span className="font-black text-court-ball">{booking.status}</span>
+    <article className="rounded-2xl border border-court-cyan/60 bg-court-panel px-4 py-3 type-body-strong text-court-cyan">
+      <span className="type-label text-court-ball">{booking.status}</span>
       <span className="mx-2 text-court-cyan/60">·</span>
       <span className={`capitalize ${detailClassName}`}>
         {formatBookingDate(booking.startTime)}
@@ -125,25 +125,25 @@ export default async function MyBookingsPage() {
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <ClubLogo clubName={clubConfig.clubName} logoUrl={clubConfig.logoUrl} />
-          <p className="mt-4 text-sm font-black uppercase tracking-[0.22em] text-court-ball">
+          <p className="mt-4 type-label text-court-ball">
             {clubConfig.copy.player.eyebrow}
           </p>
-          <h1 className="mt-2 text-4xl font-black tracking-[-0.04em] text-white">
+          <h1 className="mt-2 type-section text-white">
             {clubConfig.copy.player.title}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-court-cyan">
+          <p className="mt-2 max-w-2xl type-body text-court-cyan">
             {clubConfig.copy.player.subtitle}
           </p>
         </div>
         <Link
-          className="rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
+          className="rounded-2xl border border-court-cyan px-4 py-3 type-button text-court-cyan transition hover:border-court-ball hover:text-court-ball"
           href="/"
         >
           Volver a reservar
         </Link>
         {data.isLoggedIn ? (
           <LogoutButton
-            className="rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
+            className="rounded-2xl border border-court-cyan px-4 py-3 type-button text-court-cyan transition hover:border-court-ball hover:text-court-ball"
             label={clubConfig.copy.auth.logoutButton}
           />
         ) : null}
@@ -170,7 +170,7 @@ export default async function MyBookingsPage() {
       {data.isLoggedIn ? (
         <div className="space-y-8">
           <section className="rounded-[2rem] border border-court-ball bg-court-ink p-4 shadow-soft md:p-6">
-            <h2 className="text-2xl font-black text-white">{clubConfig.copy.player.upcomingTitle}</h2>
+            <h2 className="type-card text-white">{clubConfig.copy.player.upcomingTitle}</h2>
             <div className="mt-4 space-y-4">
               {data.upcomingBookings.map((booking) => (
                 <BookingCard
@@ -184,7 +184,7 @@ export default async function MyBookingsPage() {
                 />
               ))}
               {data.upcomingBookings.length === 0 ? (
-                <p className="rounded-2xl border border-court-cyan bg-court-panel p-5 text-sm font-bold text-court-cyan">
+                <p className="rounded-2xl border border-court-cyan bg-court-panel p-5 type-body-strong text-court-cyan">
                   {clubConfig.copy.player.emptyUpcoming}
                 </p>
               ) : null}
@@ -192,13 +192,13 @@ export default async function MyBookingsPage() {
           </section>
 
           <section className="rounded-[2rem] border border-court-cyan bg-court-ink p-4 shadow-soft md:p-6">
-            <h2 className="text-2xl font-black text-white">{clubConfig.copy.player.historyTitle}</h2>
+            <h2 className="type-card text-white">{clubConfig.copy.player.historyTitle}</h2>
             <div className="mt-4 space-y-4">
               {data.pastBookings.slice(0, 6).map((booking) => (
                 <BookingHistoryLine booking={booking} key={booking.id} />
               ))}
               {data.pastBookings.length === 0 ? (
-                <p className="rounded-2xl border border-court-cyan bg-court-panel p-5 text-sm font-bold text-court-cyan">
+                <p className="rounded-2xl border border-court-cyan bg-court-panel p-5 type-body-strong text-court-cyan">
                   {clubConfig.copy.player.emptyHistory}
                 </p>
               ) : null}

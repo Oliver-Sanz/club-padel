@@ -37,6 +37,7 @@ export type Database = {
           colors: Json;
           copy: Json;
           logo_path: string | null;
+          logo_full_path: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -45,6 +46,7 @@ export type Database = {
           colors?: Json;
           copy?: Json;
           logo_path?: string | null;
+          logo_full_path?: string | null;
           created_at?: string;
           updated_at?: string;
         };

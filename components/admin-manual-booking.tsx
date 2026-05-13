@@ -202,19 +202,19 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
   return (
     <section className="mb-6 rounded-[1.75rem] border border-court-ball bg-court-panel p-4 md:p-5">
       <div className="mb-4">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-court-ball">
+        <p className="type-label text-court-ball">
           {copy.manualTitle}
         </p>
-        <h2 className="mt-1 text-2xl font-black tracking-[-0.03em] text-white">
+        <h2 className="mt-1 type-card text-white">
           Escoge pista, hora y duracion
         </h2>
-        <p className="mt-2 text-sm font-semibold leading-6 text-court-cyan">
+        <p className="mt-2 type-body text-court-cyan">
           {copy.manualSubtitle}
         </p>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
-        <label className="grid gap-2 text-sm font-black text-court-cyan">
+        <label className="grid gap-2 type-body-strong text-court-cyan">
           Pista
           <select
             className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3 text-white outline-none focus:border-court-ball"
@@ -229,7 +229,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
           </select>
         </label>
 
-        <label className="grid gap-2 text-sm font-black text-court-cyan">
+        <label className="grid gap-2 type-body-strong text-court-cyan">
           Hora
           <div className="relative" ref={timePickerRef}>
             <button
@@ -238,7 +238,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
               type="button"
             >
               <span>{selectedTimeOption?.label ?? "Selecciona hora"}</span>
-              <span className="text-xl text-court-cyan">⌄</span>
+              <span className="type-card text-court-cyan">⌄</span>
             </button>
 
             {isTimePickerOpen ? (
@@ -246,7 +246,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
                 {timeOptions.map((option) => (
                   <button
                     className={[
-                      "mb-1 flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-sm font-black transition last:mb-0",
+                      "mb-1 flex w-full items-center justify-between rounded-xl px-3 py-3 text-left type-body-strong transition last:mb-0",
                       option.enabled
                         ? "text-white hover:bg-court-cyan/15 hover:text-court-ball"
                         : "cursor-not-allowed text-court-grey/45"
@@ -262,7 +262,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
                     <span>{minutesToTime(option.minute)}</span>
                     <span
                       className={[
-                        "rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.12em]",
+                        "rounded-full px-2 py-1 type-badge",
                         option.enabled
                           ? "bg-court-ball text-court-ink"
                           : "bg-court-panel text-court-grey/60"
@@ -277,13 +277,13 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
           </div>
         </label>
 
-        <div className="grid gap-2 text-sm font-black text-court-cyan">
+        <div className="grid gap-2 type-body-strong text-court-cyan">
           Duracion
           <div className="grid grid-cols-2 gap-2">
             {selectedOptions.map((option) => (
               <button
                 className={[
-                  "rounded-2xl border px-4 py-3 text-left font-black transition",
+                  "rounded-2xl border px-4 py-3 text-left type-button transition",
                   duration === option.duration
                     ? "border-court-ball bg-court-ball text-court-ink shadow-glow"
                     : "border-court-cyan bg-court-ink text-court-cyan",
@@ -301,7 +301,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
         </div>
 
         <button
-          className="rounded-2xl bg-court-ball px-5 py-3 text-sm font-black text-court-ink shadow-glow transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:bg-court-cyan/20 disabled:text-court-cyan/55"
+          className="rounded-2xl bg-court-ball px-5 py-3 type-button text-court-ink shadow-glow transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:bg-court-cyan/20 disabled:text-court-cyan/55"
           disabled={!selectedDurationOption?.enabled || isLoading || isSubmitting}
           onClick={createManualBooking}
           type="button"
@@ -310,7 +310,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
         </button>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-court-cyan bg-court-ink p-4 text-sm font-bold text-court-cyan">
+      <div className="mt-4 rounded-2xl border border-court-cyan bg-court-ink p-4 type-body-strong text-court-cyan">
         {selectedDurationOption?.enabled ? (
           <p>
             {selectedCourt?.name ?? "Pista"} · {formatRange(startMinute, startMinute + duration)} ·{" "}
@@ -325,7 +325,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
       </div>
 
       {message ? (
-        <p className="mt-3 rounded-2xl border border-court-ball bg-court-ink px-4 py-3 text-sm font-black text-court-ball">
+        <p className="mt-3 rounded-2xl border border-court-ball bg-court-ink px-4 py-3 type-body-strong text-court-ball">
           {message}
         </p>
       ) : null}

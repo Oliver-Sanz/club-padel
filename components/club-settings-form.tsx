@@ -19,7 +19,7 @@ type TextFieldProps = {
 
 function TextField({ label, value, onChange, placeholder, as = "input" }: TextFieldProps) {
   return (
-    <label className="grid gap-2 text-sm font-black text-court-cyan">
+    <label className="grid gap-2 type-body-strong text-court-cyan">
       <span>{label}</span>
       {as === "textarea" ? (
         <textarea
@@ -50,7 +50,7 @@ function ColorField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-black text-court-cyan">
+    <label className="grid gap-2 type-body-strong text-court-cyan">
       <span>{label}</span>
       <div className="flex items-center gap-3 rounded-2xl border border-court-cyan bg-court-ink px-4 py-3">
         <input
@@ -81,8 +81,8 @@ function SettingsBlock({
   return (
     <section className="rounded-[1.75rem] border border-court-cyan bg-court-panel p-4 shadow-soft md:p-5">
       <div className="mb-4">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-court-ball">{title}</p>
-        <p className="mt-2 text-sm font-semibold leading-6 text-court-cyan">{description}</p>
+        <p className="type-label text-court-ball">{title}</p>
+        <p className="mt-2 type-body text-court-cyan">{description}</p>
       </div>
       <div className="grid gap-4">{children}</div>
     </section>
@@ -96,6 +96,10 @@ export function ClubSettingsForm({ config }: ClubSettingsFormProps) {
   const [copy, setCopy] = useState<ClubCopy>(config.copy);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(config.logoUrl);
+  const [fullLogoFile, setFullLogoFile] = useState<File | null>(null);
+  const [fullLogoPreviewUrl, setFullLogoPreviewUrl] = useState<string | null>(
+    config.fullLogoUrl
+  );
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -123,13 +127,17 @@ export function ClubSettingsForm({ config }: ClubSettingsFormProps) {
         clubName,
         colors,
         copy,
-        logoPath: config.logoPath
+        logoPath: config.logoPath,
+        fullLogoPath: config.fullLogoPath
       };
 
       const formData = new FormData();
       formData.set("payload", JSON.stringify(payload));
       if (logoFile) {
         formData.set("logo", logoFile);
+      }
+      if (fullLogoFile) {
+        formData.set("fullLogo", fullLogoFile);
       }
 
       const response = await fetch("/api/club-settings", {
@@ -162,8 +170,8 @@ export function ClubSettingsForm({ config }: ClubSettingsFormProps) {
         >
           <TextField label="Nombre del club" onChange={setClubName} value={clubName} />
 
-          <label className="grid gap-2 text-sm font-black text-court-cyan">
-            <span>Logo del club</span>
+          <label className="grid gap-2 type-body-strong text-court-cyan">
+            <span>Isologo (cuadrado, cabecera)</span>
             <input
               className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3 text-white outline-none focus:border-court-ball"
               onChange={(event) => {
@@ -173,6 +181,23 @@ export function ClubSettingsForm({ config }: ClubSettingsFormProps) {
                   URL.revokeObjectURL(logoPreviewUrl);
                 }
                 setLogoPreviewUrl(file ? URL.createObjectURL(file) : config.logoUrl);
+              }}
+              type="file"
+              accept="image/*"
+            />
+          </label>
+
+          <label className="grid gap-2 type-body-strong text-court-cyan">
+            <span>Logo completo (horizontal, hero escritorio)</span>
+            <input
+              className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3 text-white outline-none focus:border-court-ball"
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null;
+                setFullLogoFile(file);
+                if (fullLogoPreviewUrl?.startsWith("blob:")) {
+                  URL.revokeObjectURL(fullLogoPreviewUrl);
+                }
+                setFullLogoPreviewUrl(file ? URL.createObjectURL(file) : config.fullLogoUrl);
               }}
               type="file"
               accept="image/*"
@@ -288,26 +313,38 @@ export function ClubSettingsForm({ config }: ClubSettingsFormProps) {
 
       <aside className="space-y-4 xl:sticky xl:top-6">
         <section className="rounded-[1.75rem] border border-court-ball bg-court-ink p-4 shadow-soft">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-court-ball">Vista previa</p>
+          <p className="type-label text-court-ball">Vista previa</p>
           <div className="mt-4 rounded-[1.5rem] border border-court-cyan bg-court-panel p-4" style={previewStyle}>
             <div className="mb-3">
               <ClubLogo clubName={clubName} logoUrl={logoPreviewUrl} />
             </div>
-            <p className="text-sm font-black uppercase tracking-[0.2em] text-court-cyan">
+            <div className="mb-3 grid min-h-24 place-items-center rounded-2xl border border-court-cyan/40 bg-court-ink/40 p-3">
+              {fullLogoPreviewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  alt={`${clubName} logo completo`}
+                  className="max-h-20 w-full object-contain"
+                  src={fullLogoPreviewUrl}
+                />
+              ) : (
+                <p className="type-note text-court-cyan">Logo completo no cargado</p>
+              )}
+            </div>
+            <p className="type-label text-court-cyan">
               {copy.home.eyebrow}
             </p>
-            <h3 className="mt-2 text-2xl font-black leading-tight text-court-ball">
+            <h3 className="mt-2 type-card leading-tight text-court-ball">
               {copy.home.title}
             </h3>
-            <p className="mt-2 text-sm leading-6 text-court-cyan">{copy.home.subtitle}</p>
-            <div className="mt-4 rounded-2xl border border-court-ball bg-court-ink px-4 py-3 text-sm font-bold text-court-ball">
+            <p className="mt-2 type-body text-court-cyan">{copy.home.subtitle}</p>
+            <div className="mt-4 rounded-2xl border border-court-ball bg-court-ink px-4 py-3 type-body-strong text-court-ball">
               {copy.booking.buttonLabel}
             </div>
           </div>
         </section>
 
         <button
-          className="w-full rounded-2xl bg-court-ball px-5 py-4 text-sm font-black text-court-ink shadow-glow transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:bg-court-cyan/20 disabled:text-court-cyan/55"
+          className="w-full rounded-2xl bg-court-ball px-5 py-4 type-button text-court-ink shadow-glow transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:bg-court-cyan/20 disabled:text-court-cyan/55"
           disabled={isSaving}
           onClick={() => void saveSettings()}
           type="button"
@@ -316,7 +353,7 @@ export function ClubSettingsForm({ config }: ClubSettingsFormProps) {
         </button>
 
         {message ? (
-          <p className="rounded-2xl border border-court-ball bg-court-ink px-4 py-3 text-sm font-black text-court-ball">
+          <p className="rounded-2xl border border-court-ball bg-court-ink px-4 py-3 type-body-strong text-court-ball">
             {message}
           </p>
         ) : null}

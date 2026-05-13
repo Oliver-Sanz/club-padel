@@ -21,20 +21,20 @@ export function ClubLogo({
     .join("");
 
   return (
-    <div className={`flex items-center gap-3 ${className}`.trim()}>
+    <div className={`flex min-w-0 items-center gap-3 ${className}`.trim()}>
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           alt={`${clubName} logo`}
-          className={`h-12 w-12 rounded-2xl object-cover shadow-soft ${imageClassName}`.trim()}
+          className={`h-12 w-12 shrink-0 rounded-2xl object-cover shadow-soft ${imageClassName}`.trim()}
           src={logoUrl}
         />
       ) : (
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-court-ball text-sm font-black text-court-ink shadow-glow">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-court-ball text-sm font-black text-court-ink shadow-glow">
           {initials || "CP"}
         </div>
       )}
-      <span className={`font-black ${textClassName}`.trim()}>{clubName}</span>
+      <span className={`min-w-0 truncate font-black ${textClassName}`.trim()}>{clubName}</span>
     </div>
   );
 }

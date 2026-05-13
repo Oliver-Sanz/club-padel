@@ -53,14 +53,14 @@ export function CancelBookingButton({
   return (
     <div>
       <button
-        className="rounded-2xl border border-court-ball px-4 py-3 text-sm font-black text-court-ball transition hover:bg-court-ball hover:text-court-ink disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-2xl border border-court-ball px-4 py-3 type-button text-court-ball transition hover:bg-court-ball hover:text-court-ink disabled:cursor-not-allowed disabled:opacity-50"
         disabled={isCancelling}
         onClick={cancelBooking}
         type="button"
       >
         {isCancelling ? labels.canceling : labels.button}
       </button>
-      {message ? <p className="mt-2 text-sm font-black text-court-ball">{message}</p> : null}
+      {message ? <p className="mt-2 type-body-strong text-court-ball">{message}</p> : null}
     </div>
   );
 }

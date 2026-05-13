@@ -2,6 +2,7 @@ import { getClubDateISO, getClubDayRangeUtc } from "@/lib/club-time";
 import { toISODate } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { getSafeUser } from "@/lib/supabase/session";
 
 export type AdminBookingRow = {
   id: string;
@@ -83,9 +84,7 @@ export async function getAdminData(params: { date?: string; court?: string }): P
   }
 
   const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const user = await getSafeUser(supabase);
 
   if (!user) {
     return emptyAdminData({

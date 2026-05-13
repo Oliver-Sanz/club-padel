@@ -9,7 +9,7 @@ export function LogoutButton({ className, label = "Cerrar sesion" }: LogoutButto
       <button
         className={
           className ??
-          "rounded-2xl border border-court-cyan px-4 py-3 text-sm font-black text-court-cyan transition hover:border-court-ball hover:text-court-ball"
+          "rounded-2xl border border-court-cyan px-4 py-3 type-button text-court-cyan transition hover:border-court-ball hover:text-court-ball"
         }
         type="submit"
       >

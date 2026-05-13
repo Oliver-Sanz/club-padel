@@ -2,6 +2,7 @@ import { canCancelForFree } from "@/lib/booking-rules";
 import { type ClubCopy } from "@/lib/club-branding";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { getSafeUser } from "@/lib/supabase/session";
 
 export type PlayerBookingRow = {
   id: string;
@@ -54,9 +55,7 @@ export async function getPlayerBookingsData(labels?: Pick<ClubCopy["player"], "c
   }
 
   const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const user = await getSafeUser(supabase);
 
   if (!user) {
     return {

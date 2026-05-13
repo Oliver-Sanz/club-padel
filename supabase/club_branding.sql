@@ -13,6 +13,7 @@ create table if not exists public.clubs (
 create table if not exists public.club_settings (
   club_id uuid primary key references public.clubs(id) on delete cascade,
   logo_path text,
+  logo_full_path text,
   colors jsonb not null default '{
     "background": "#25476E",
     "foreground": "#33EFFF",
@@ -94,6 +95,9 @@ create table if not exists public.club_settings (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.club_settings
+add column if not exists logo_full_path text;
 
 create index if not exists clubs_slug_idx on public.clubs (slug);
 

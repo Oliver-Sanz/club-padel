@@ -63,6 +63,7 @@ create table public.clubs (
 create table public.club_settings (
   club_id uuid primary key references public.clubs(id) on delete cascade,
   logo_path text,
+  logo_full_path text,
   colors jsonb not null default '{
     "background": "#25476E",
     "foreground": "#33EFFF",

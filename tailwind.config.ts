@@ -4,6 +4,9 @@ const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Inter Variable", "system-ui", "sans-serif"]
+      },
       colors: {
         court: {
           navy: "var(--court-background)",

@@ -4,16 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "rm -rf .next && next dev",
-    "dev:hot": "next dev",
-    "dev:clean": "rm -rf .next && next dev",
+    "dev": "NEXT_DIST_DIR=.next-dev next dev",
+    "dev:hot": "NEXT_DIST_DIR=.next-dev next dev",
+    "dev:clean": "rm -rf .next-dev && NEXT_DIST_DIR=.next-dev next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit",
-    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit --incremental false",
+    "typecheck": "tsc --noEmit --incremental false",
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.3",
     "@types/node": "^22.15.3",

@@ -13,6 +13,7 @@ const BRANDING_BUCKET = "club-branding";
 
 type ClubSettingsRow = {
   logo_path: string | null;
+  logo_full_path?: string | null;
   colors: unknown;
   copy: unknown;
 };
@@ -41,15 +42,21 @@ export async function getClubConfig(): Promise<ClubConfig> {
 
     const { data: settings } = await supabase
       .from("club_settings")
-      .select("logo_path,colors,copy")
+      .select("*")
       .eq("club_id", club.id)
       .maybeSingle();
 
     const typedSettings = settings as ClubSettingsRow | null;
     const logoPath = typedSettings?.logo_path ?? null;
+    const mergedCopy = mergeDeep(DEFAULT_COPY, typedSettings?.copy);
+    const fullLogoPath =
+      typedSettings?.logo_full_path ?? mergedCopy.system.fullLogoPathFallback ?? null;
 
     const logoUrl =
       logoPath ? supabase.storage.from(BRANDING_BUCKET).getPublicUrl(logoPath).data.publicUrl : null;
+    const fullLogoUrl = fullLogoPath
+      ? supabase.storage.from(BRANDING_BUCKET).getPublicUrl(fullLogoPath).data.publicUrl
+      : null;
 
     return {
       clubId: club.id,
@@ -57,8 +64,10 @@ export async function getClubConfig(): Promise<ClubConfig> {
       clubName: club.name,
       logoPath,
       logoUrl,
+      fullLogoPath,
+      fullLogoUrl,
       colors: mergeDeep(DEFAULT_COLORS, typedSettings?.colors),
-      copy: mergeDeep(DEFAULT_COPY, typedSettings?.copy)
+      copy: mergedCopy
     };
   } catch {
     return getDefaultClubConfig();

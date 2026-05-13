@@ -9,6 +9,7 @@ type ClubSettingsPayload = {
   colors: ClubThemeColors;
   copy: ClubCopy;
   logoPath: string | null;
+  fullLogoPath: string | null;
 };
 
 function isString(value: unknown): value is string {
@@ -53,6 +54,44 @@ function sanitizeFileName(name: string) {
     .replace(/[^a-z0-9._-]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+function getCopyWithFullLogoFallback(copy: ClubCopy, fullLogoPath: string | null): ClubCopy {
+  if (!fullLogoPath) {
+    return copy;
+  }
+
+  return {
+    ...copy,
+    system: {
+      ...copy.system,
+      fullLogoPathFallback: fullLogoPath
+    }
+  };
+}
+
+async function uploadBrandingAsset(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  clubSlug: string,
+  file: File
+) {
+  const extension = file.name.includes(".") ? file.name.split(".").pop()?.toLowerCase() : "png";
+  const safeName = sanitizeFileName(file.name) || "logo";
+  const path = `${clubSlug}/${Date.now()}-${safeName}.${extension ?? "png"}`;
+  const bytes = new Uint8Array(await file.arrayBuffer());
+
+  const { error: uploadError } = await supabase.storage
+    .from(getClubBrandingBucket())
+    .upload(path, bytes, {
+      contentType: file.type || "image/png",
+      upsert: true
+    });
+
+  if (uploadError) {
+    return { path: null, error: "No se pudo subir la imagen." } as const;
+  }
+
+  return { path, error: null } as const;
 }
 
 async function requireAdmin() {
@@ -155,45 +194,72 @@ export async function POST(request: Request) {
   }
 
   let logoPath = payload.logoPath;
+  let fullLogoPath = payload.fullLogoPath;
   const logo = formData.get("logo");
+  const fullLogo = formData.get("fullLogo");
 
   if (logo instanceof File && logo.size > 0) {
-    const extension = logo.name.includes(".") ? logo.name.split(".").pop()?.toLowerCase() : "png";
-    const safeName = sanitizeFileName(logo.name) || "logo";
-    const path = `${club.slug}/${Date.now()}-${safeName}.${extension ?? "png"}`;
-    const bytes = new Uint8Array(await logo.arrayBuffer());
-
-    const { error: uploadError } = await supabase.storage
-      .from(getClubBrandingBucket())
-      .upload(path, bytes, {
-        contentType: logo.type || "image/png",
-        upsert: true
-      });
-
-    if (uploadError) {
+    const uploaded = await uploadBrandingAsset(supabase, club.slug, logo);
+    if (!uploaded.path) {
       return NextResponse.json(
-        { error: "No se pudo subir el logo." },
+        { error: uploaded.error },
         { status: 500 }
       );
     }
-
-    logoPath = path;
+    logoPath = uploaded.path;
   }
 
-  const { error: settingsError } = await supabase.from("club_settings").upsert(
-    {
-      club_id: club.id,
-      colors: payload.colors,
-      copy: payload.copy,
-      logo_path: logoPath,
-      updated_at: new Date().toISOString()
-    },
-    { onConflict: "club_id" }
-  );
+  if (fullLogo instanceof File && fullLogo.size > 0) {
+    const uploaded = await uploadBrandingAsset(supabase, club.slug, fullLogo);
+    if (!uploaded.path) {
+      return NextResponse.json(
+        { error: uploaded.error },
+        { status: 500 }
+      );
+    }
+    fullLogoPath = uploaded.path;
+  }
+
+  const upsertPayload: {
+    club_id: string;
+    colors: ClubThemeColors;
+    copy: ClubCopy;
+    logo_path: string | null;
+    updated_at: string;
+    logo_full_path?: string | null;
+  } = {
+    club_id: club.id,
+    colors: payload.colors,
+    copy: getCopyWithFullLogoFallback(payload.copy, fullLogoPath),
+    logo_path: logoPath,
+    updated_at: new Date().toISOString()
+  };
+
+  if (fullLogoPath !== null || (fullLogo instanceof File && fullLogo.size > 0)) {
+    upsertPayload.logo_full_path = fullLogoPath;
+  }
+
+  let { error: settingsError } = await supabase
+    .from("club_settings")
+    .upsert(upsertPayload, { onConflict: "club_id" });
+
+  if (settingsError && "logo_full_path" in upsertPayload) {
+    delete upsertPayload.logo_full_path;
+    const retryResult = await supabase
+      .from("club_settings")
+      .upsert(upsertPayload, { onConflict: "club_id" });
+    settingsError = retryResult.error;
+  }
 
   if (settingsError) {
+    console.error("club_settings upsert failed", settingsError);
     return NextResponse.json(
-      { error: "No se pudo guardar la configuracion del club." },
+      {
+        error:
+          process.env.NODE_ENV === "development"
+            ? `No se pudo guardar la configuracion del club: ${settingsError.message}`
+            : "No se pudo guardar la configuracion del club."
+      },
       { status: 500 }
     );
   }

@@ -77,6 +77,7 @@ export type ClubCopy = {
     dataSourceMock: string;
     dataSourceSupabase: string;
     updatingAvailability: string;
+    fullLogoPathFallback?: string;
   };
 };
 
@@ -86,6 +87,8 @@ export type ClubConfig = {
   clubName: string;
   logoPath: string | null;
   logoUrl: string | null;
+  fullLogoPath: string | null;
+  fullLogoUrl: string | null;
   colors: ClubThemeColors;
   copy: ClubCopy;
 };
@@ -224,6 +227,8 @@ export function getDefaultClubConfig(): ClubConfig {
     clubName: "Club de Padel",
     logoPath: null,
     logoUrl: null,
+    fullLogoPath: null,
+    fullLogoUrl: null,
     colors: DEFAULT_COLORS,
     copy: DEFAULT_COPY
   };
