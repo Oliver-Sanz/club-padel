@@ -24,27 +24,34 @@ export type PlayerBookingsData = {
   pastBookings: PlayerBookingRow[];
 };
 
-function mapBookingStatus(status: string, cancelledLabel = "Cancelada") {
+type PlayerBookingLabels = Pick<ClubCopy["player"], "cancelledLabel" | "contactClub"> & {
+  confirmedLabel?: string;
+  expiredLabel?: string;
+  freeCancellation?: string;
+  inProgressLabel?: string;
+};
+
+function mapBookingStatus(status: string, labels?: PlayerBookingLabels) {
   if (status === "confirmed") {
-    return "Confirmada";
+    return labels?.confirmedLabel ?? "Confirmed";
   }
 
   if (status === "pending_payment") {
-    return "En proceso";
+    return labels?.inProgressLabel ?? "In progress";
   }
 
   if (status === "cancelled") {
-    return cancelledLabel;
+    return labels?.cancelledLabel ?? "Cancelled";
   }
 
   if (status === "expired") {
-    return "Expirada";
+    return labels?.expiredLabel ?? "Expired";
   }
 
   return status;
 }
 
-export async function getPlayerBookingsData(labels?: Pick<ClubCopy["player"], "cancelledLabel" | "contactClub">): Promise<PlayerBookingsData> {
+export async function getPlayerBookingsData(labels?: PlayerBookingLabels): Promise<PlayerBookingsData> {
   if (!isSupabaseConfigured()) {
     return {
       isConfigured: false,
@@ -86,17 +93,17 @@ export async function getPlayerBookingsData(labels?: Pick<ClubCopy["player"], "c
       const cancellationMessage =
         isFuture && isConfirmed
           ? canCancel
-            ? "Cancelacion gratis disponible"
-            : labels?.contactClub ?? "Faltan menos de 6 horas: contacta con el club"
+            ? labels?.freeCancellation ?? "Free cancellation available"
+            : labels?.contactClub ?? "Less than 6 hours left: contact the club"
           : "";
 
       return {
         id: booking.id,
-        courtName: courtMap.get(booking.court_id) ?? `Pista ${booking.court_id}`,
+        courtName: courtMap.get(booking.court_id) ?? `Court ${booking.court_id}`,
         startTime: booking.start_time,
         endTime: booking.end_time,
         durationMinutes: booking.duration_minutes,
-        status: mapBookingStatus(booking.status, labels?.cancelledLabel),
+        status: mapBookingStatus(booking.status, labels),
         rawStatus: booking.status,
         priceTotalCents: booking.price_total_cents,
         canCancel,

@@ -5,8 +5,8 @@ import { getClubThemeStyle } from "@/lib/club-branding";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Club Padel MVP",
-  description: "MVP de reservas para un club de padel"
+  title: "Padel Club MVP",
+  description: "Booking MVP for a padel club"
 };
 
 export default async function RootLayout({
@@ -17,7 +17,7 @@ export default async function RootLayout({
   const clubConfig = await getClubConfig();
 
   return (
-    <html lang="es">
+    <html lang={clubConfig.locale}>
       <body className="antialiased" style={getClubThemeStyle(clubConfig.colors)}>
         {children}
       </body>

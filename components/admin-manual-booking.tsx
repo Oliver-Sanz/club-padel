@@ -11,15 +11,17 @@ import {
 import { AvailabilityData } from "@/lib/availability-data";
 import { type ClubCopy } from "@/lib/club-branding";
 import { formatMoney, formatRange } from "@/lib/format";
+import { UI_LABELS, type SupportedLocale } from "@/lib/i18n";
 
 type AdminManualBookingProps = {
   selectedDate: string;
   courts: Array<{ id: number; name: string }>;
   players: Array<{ id: string; label: string }>;
   copy: ClubCopy["admin"];
+  locale: SupportedLocale;
 };
 
-export function AdminManualBooking({ selectedDate, courts, players, copy }: AdminManualBookingProps) {
+export function AdminManualBooking({ selectedDate, courts, players, copy, locale }: AdminManualBookingProps) {
   const router = useRouter();
   const [courtId, setCourtId] = useState(() => courts[0]?.id ?? 1);
   const [playerId, setPlayerId] = useState(() => players[0]?.id ?? "");
@@ -31,6 +33,7 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const timePickerRef = useRef<HTMLDivElement | null>(null);
+  const ui = UI_LABELS[locale];
 
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const selectedCourt = courts.find((court) => court.id === courtId);
@@ -41,7 +44,7 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
         minute,
         label: minutesToTime(minute),
         enabled: false,
-        stateLabel: "Cargando"
+        stateLabel: ui.loading
       }));
     }
 
@@ -58,10 +61,10 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
         const hasAnyAvailableDuration = options.some((option) => option.enabled);
         const reason = options.find((option) => option.reason)?.reason ?? "";
         const stateLabel = hasAnyAvailableDuration
-          ? "Libre"
-          : reason.includes("pasado")
-            ? "Pasado"
-            : "Ocupado";
+          ? ui.available
+          : reason.includes("passed") || reason.includes("pasado")
+            ? ui.past
+            : ui.occupied;
 
         return {
           minute,
@@ -72,9 +75,9 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
       } catch {
         return {
           minute,
-          label: `${minutesToTime(minute)} - Sin precio`,
+          label: `${minutesToTime(minute)} - ${ui.noPrice}`,
           enabled: false,
-          stateLabel: "Sin precio"
+          stateLabel: ui.noPrice
         };
       }
     });
@@ -118,7 +121,11 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
         }
       } catch {
         if (!ignore) {
-          setMessage("No se pudo cargar la disponibilidad de ese dia.");
+          setMessage(
+            locale === "es"
+              ? "No se pudo cargar la disponibilidad de ese dia."
+              : "Could not load availability for that day."
+          );
         }
       } finally {
         if (!ignore) {
@@ -176,7 +183,7 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
 
   async function createManualBooking() {
     setIsSubmitting(true);
-    setMessage("Creando reserva manual...");
+    setMessage(ui.createManualBooking);
 
     try {
       const response = await fetch("/api/admin/bookings", {
@@ -196,14 +203,14 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
       const result = (await response.json().catch(() => ({}))) as { error?: string };
 
       if (!response.ok) {
-        setMessage(result.error ?? "No se pudo crear la reserva manual.");
+        setMessage(result.error ?? ui.createManualBookingError);
         return;
       }
 
-      setMessage("Reserva manual creada correctamente.");
+      setMessage(ui.createManualBookingSuccess);
       router.refresh();
     } catch {
-      setMessage("No se pudo conectar con el servidor.");
+      setMessage(ui.serverError);
     } finally {
       setIsSubmitting(false);
     }
@@ -216,7 +223,7 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
           {copy.manualTitle}
         </p>
         <h2 className="mt-1 type-card text-white">
-          Escoge pista, hora y duracion
+          {ui.chooseManualBooking}
         </h2>
         <p className="mt-2 type-body text-court-cyan">
           {copy.manualSubtitle}
@@ -225,7 +232,7 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
 
       <div className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end">
         <label className="grid gap-2 type-body-strong text-court-cyan">
-          Jugador
+          {ui.player}
           <select
             className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3 text-white outline-none focus:border-court-ball"
             disabled={players.length === 0}
@@ -233,7 +240,7 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
             value={playerId}
           >
             {players.length === 0 ? (
-              <option value="">No hay jugadores</option>
+              <option value="">{ui.noPlayers}</option>
             ) : null}
             {players.map((player) => (
               <option key={player.id} value={player.id}>
@@ -244,7 +251,7 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
         </label>
 
         <label className="grid gap-2 type-body-strong text-court-cyan">
-          Pista
+          {ui.court}
           <select
             className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3 text-white outline-none focus:border-court-ball"
             onChange={(event) => setCourtId(Number(event.target.value))}
@@ -259,14 +266,14 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
         </label>
 
         <label className="grid gap-2 type-body-strong text-court-cyan">
-          Hora
+          {ui.time}
           <div className="relative" ref={timePickerRef}>
             <button
               className="flex w-full items-center justify-between gap-3 rounded-2xl border border-court-cyan bg-court-ink px-4 py-3 text-left text-white outline-none transition focus:border-court-ball"
               onClick={() => setIsTimePickerOpen((isOpen) => !isOpen)}
               type="button"
             >
-              <span>{selectedTimeOption?.label ?? "Selecciona hora"}</span>
+              <span>{selectedTimeOption?.label ?? ui.selectTime}</span>
               <span className="type-card text-court-cyan">⌄</span>
             </button>
 
@@ -307,7 +314,7 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
         </label>
 
         <div className="grid gap-2 type-body-strong text-court-cyan">
-          Duracion
+          {ui.duration}
           <div className="grid grid-cols-2 gap-2">
             {selectedOptions.map((option) => (
               <button
@@ -335,20 +342,20 @@ export function AdminManualBooking({ selectedDate, courts, players, copy }: Admi
           onClick={createManualBooking}
           type="button"
         >
-          {isSubmitting ? "Creando..." : "Crear reserva"}
+          {isSubmitting ? ui.creating : ui.createBooking}
         </button>
       </div>
 
       <div className="mt-4 rounded-2xl border border-court-cyan bg-court-ink p-4 type-body-strong text-court-cyan">
         {selectedDurationOption?.enabled ? (
           <p>
-            {selectedPlayer?.label ?? "Jugador"} · {selectedCourt?.name ?? "Pista"} · {formatRange(startMinute, startMinute + duration)} ·{" "}
-            {formatMoney(selectedDurationOption.price?.totalCents ?? 0)}
+            {selectedPlayer?.label ?? ui.player} · {selectedCourt?.name ?? ui.court} · {formatRange(startMinute, startMinute + duration)} ·{" "}
+            {formatMoney(selectedDurationOption.price?.totalCents ?? 0, "EUR", locale)}
           </p>
         ) : (
           <p>
             {selectedDurationOption?.reason ??
-              "Selecciona una pista y hora disponible para crear la reserva."}
+              ui.selectAvailableSlot}
           </p>
         )}
       </div>

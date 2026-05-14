@@ -1,6 +1,7 @@
 import { AvailabilityBoard } from "@/components/availability-board";
 import { AuthCard } from "@/components/auth-card";
 import { ClubLogo } from "@/components/club-logo";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { getClubConfig } from "@/lib/club-config";
 import { getAvailabilityData } from "@/lib/availability-data";
 import { buildDateOptions } from "@/lib/format";
@@ -22,6 +23,10 @@ export default async function HomePage() {
       <header className="relative mb-8 min-w-0 overflow-hidden rounded-[2rem] border border-court-ball bg-court-ink p-6 text-white shadow-soft md:p-10">
         <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-court-ball/15 blur-2xl" />
         <div className="absolute bottom-0 left-0 h-1 w-full bg-court-ball" />
+        <LanguageSwitcher
+          className="absolute right-6 top-6 z-20 md:right-10 md:top-9"
+          locale={clubConfig.locale}
+        />
         <div className="relative z-10 grid min-w-0 gap-8 md:grid-cols-[minmax(0,1fr)_minmax(14rem,21rem)] md:items-center lg:grid-cols-[minmax(0,1fr)_minmax(16rem,24rem)]">
           <div className="min-w-0 max-w-3xl">
             <ClubLogo clubName={clubConfig.clubName} logoUrl={clubConfig.logoUrl} />
@@ -63,12 +68,14 @@ export default async function HomePage() {
           copy={clubConfig.copy}
           initialData={availabilityData}
           isConfigured={isConfigured}
+          locale={clubConfig.locale}
           logoUrl={clubConfig.logoUrl}
         />
         <AuthCard
           clubName={clubConfig.clubName}
           copy={clubConfig.copy.auth}
           isConfigured={isConfigured}
+          locale={clubConfig.locale}
           logoUrl={clubConfig.logoUrl}
           user={user ? { email: user.email } : null}
         />

@@ -12,6 +12,7 @@ import {
 import { AvailabilityData } from "@/lib/availability-data";
 import { type ClubCopy } from "@/lib/club-branding";
 import { buildDateOptions } from "@/lib/format";
+import { UI_LABELS, type SupportedLocale } from "@/lib/i18n";
 import { pricingRules as mockPricingRules } from "@/lib/mock-data";
 import { BookingDrawer } from "@/components/booking-drawer";
 import { DatePicker } from "@/components/date-picker";
@@ -44,6 +45,7 @@ type AvailabilityBoardProps = {
   canCreateBookings: boolean;
   copy: ClubCopy;
   isConfigured: boolean;
+  locale: SupportedLocale;
   clubName: string;
   logoUrl: string | null;
 };
@@ -68,6 +70,7 @@ export function AvailabilityBoard({
   canCreateBookings,
   copy,
   isConfigured,
+  locale,
   clubName,
   logoUrl
 }: AvailabilityBoardProps) {
@@ -90,12 +93,13 @@ export function AvailabilityBoard({
     availabilityData.pricingRules.length > 0 ? availabilityData.pricingRules : mockPricingRules;
   const statusCopy = {
     available: copy.booking.legendAvailable,
-    unavailable: "Pasado",
+    unavailable: UI_LABELS[locale].past,
     confirmed: copy.booking.legendBooked,
     blocked: copy.booking.legendBlocked,
     event: copy.booking.legendBooked,
     pending_payment: copy.booking.legendInProgress
   } as const;
+  const ui = UI_LABELS[locale];
 
   const selectedOptions = activeHold ? drawerOptions : selectedSlot ? drawerOptions : [];
 
@@ -191,7 +195,7 @@ export function AvailabilityBoard({
       return;
     }
 
-    setBookingMessage(activeHold ? "Confirmando reserva..." : copy.booking.loadingMessage);
+    setBookingMessage(activeHold ? ui.confirmingBooking : copy.booking.loadingMessage);
     setIsCreatingBooking(true);
 
     try {
@@ -240,7 +244,11 @@ export function AvailabilityBoard({
         return;
       }
 
-      setBookingMessage("Reserva confirmada. Actualizando disponibilidad...");
+      setBookingMessage(
+        locale === "es"
+          ? "Reserva confirmada. Actualizando disponibilidad..."
+          : "Booking confirmed. Updating availability..."
+      );
       setActiveHold(null);
       setSelectedSlot(null);
       setDrawerOptions([]);
@@ -266,7 +274,7 @@ export function AvailabilityBoard({
             {copy.booking.subtitle}
           </p>
           <p className="mt-3 inline-flex rounded-full border border-court-cyan bg-court-panel px-3 py-1 type-badge text-court-cyan">
-            Datos:{" "}
+            {ui.data}:{" "}
             {availabilityData.source === "supabase"
               ? copy.system.dataSourceSupabase
               : copy.system.dataSourceMock}
@@ -282,7 +290,7 @@ export function AvailabilityBoard({
         </div>
 
         <div className="min-w-0">
-          <DatePicker onSelectDate={changeDate} selectedDate={selectedDate} />
+          <DatePicker locale={locale} onSelectDate={changeDate} selectedDate={selectedDate} />
         </div>
       </div>
 
@@ -363,8 +371,9 @@ export function AvailabilityBoard({
         canCreateBookings={canCreateBookings}
         clubName={clubName}
         isSubmitting={isCreatingBooking}
-        isConfigured={isConfigured}
-        logoUrl={logoUrl}
+          isConfigured={isConfigured}
+          locale={locale}
+          logoUrl={logoUrl}
         message={bookingMessage}
         onConfirmBooking={createBooking}
         onClose={() => {

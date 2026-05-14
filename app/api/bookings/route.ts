@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   const { courtId, dateISO, startMinute, durationMinutes } = body;
 
   if (durationMinutes !== 60 && durationMinutes !== 90) {
-    return NextResponse.json({ error: "Duracion no permitida." }, { status: 400 });
+    return NextResponse.json({ error: "Duration not allowed." }, { status: 400 });
   }
 
   if (!isInsideClubHours(startMinute, durationMinutes)) {
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Inicia sesion para reservar." }, { status: 401 });
+    return NextResponse.json({ error: "Sign in to book." }, { status: 401 });
   }
 
   const { count } = await supabase
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     });
   } catch {
     return NextResponse.json(
-      { error: "No hay una regla de precio configurada para ese horario." },
+      { error: "There is no pricing rule configured for that time slot." },
       { status: 400 }
     );
   }
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
     price = calculatePrice(dateISO, startMinute, durationMinutes, availability.pricingRules);
   } catch {
     return NextResponse.json(
-      { error: "No hay una regla de precio configurada para ese horario." },
+      { error: "There is no pricing rule configured for that time slot." },
       { status: 400 }
     );
   }
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json(
-      { error: "No se pudo crear la reserva. Puede que alguien haya reservado antes." },
+      { error: "Could not create the booking. Someone may have booked it first." },
       { status: 409 }
     );
   }

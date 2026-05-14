@@ -16,10 +16,10 @@ type CancelBookingButtonProps = {
 export function CancelBookingButton({
   bookingId,
   labels = {
-    button: "Cancelar reserva",
-    canceling: "Cancelando...",
-    success: "Reserva cancelada.",
-    fallbackError: "No se pudo cancelar la reserva."
+    button: "Cancel booking",
+    canceling: "Cancelling...",
+    success: "Booking cancelled.",
+    fallbackError: "Could not cancel the booking."
   }
 }: CancelBookingButtonProps) {
   const router = useRouter();
@@ -44,7 +44,7 @@ export function CancelBookingButton({
       setMessage(labels.success);
       router.refresh();
     } catch {
-      setMessage("No se pudo conectar con el servidor.");
+      setMessage("Could not connect to the server.");
     } finally {
       setIsCancelling(false);
     }

@@ -5,6 +5,7 @@ import { FormEvent, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { type ClubCopy } from "@/lib/club-branding";
+import { UI_LABELS, type SupportedLocale } from "@/lib/i18n";
 import { ClubLogo } from "@/components/club-logo";
 
 type AuthCardProps = {
@@ -13,18 +14,20 @@ type AuthCardProps = {
   clubName: string;
   logoUrl: string | null;
   copy: ClubCopy["auth"];
+  locale: SupportedLocale;
 };
 
-export function AuthCard({ isConfigured, user, clubName, logoUrl, copy }: AuthCardProps) {
+export function AuthCard({ isConfigured, user, clubName, logoUrl, copy, locale }: AuthCardProps) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const ui = UI_LABELS[locale];
 
   async function loginWithGoogle() {
     setMessage("");
 
     if (!isConfigured) {
-      setMessage("Primero configura Supabase en .env.local.");
+      setMessage(ui.configureSupabaseFirst);
       return;
     }
 
@@ -43,7 +46,7 @@ export function AuthCard({ isConfigured, user, clubName, logoUrl, copy }: AuthCa
     setMessage("");
 
     if (!isConfigured) {
-      setMessage("Primero configura Supabase en .env.local.");
+      setMessage(ui.configureSupabaseFirst);
       return;
     }
 
@@ -63,7 +66,7 @@ export function AuthCard({ isConfigured, user, clubName, logoUrl, copy }: AuthCa
       return;
     }
 
-    setMessage("Te hemos enviado un enlace de acceso al email.");
+    setMessage(ui.emailSent);
   }
 
   if (user) {
@@ -142,7 +145,7 @@ export function AuthCard({ isConfigured, user, clubName, logoUrl, copy }: AuthCa
           disabled={!isConfigured || isLoading}
           type="submit"
         >
-          {isLoading ? "Enviando..." : copy.emailButton}
+          {isLoading ? ui.sending : copy.emailButton}
         </button>
       </form>
 

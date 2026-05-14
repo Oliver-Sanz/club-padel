@@ -1,4 +1,5 @@
 import { toISODate } from "@/lib/format";
+import { LOCALE_FORMATS, type SupportedLocale } from "@/lib/i18n";
 
 export const CLUB_TIME_ZONE = "Europe/Madrid";
 
@@ -95,9 +96,9 @@ export function getClubDayRangeUtc(dateISO: string) {
 export function formatClubDateTime(
   value: Date | string,
   options: Intl.DateTimeFormatOptions,
-  locale = "es-ES"
+  locale: SupportedLocale = "en"
 ) {
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat(LOCALE_FORMATS[locale], {
     ...options,
     timeZone: CLUB_TIME_ZONE
   }).format(typeof value === "string" ? new Date(value) : value);

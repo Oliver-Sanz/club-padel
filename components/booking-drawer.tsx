@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DurationMinutes, DurationOption, minutesToTime } from "@/lib/booking-rules";
 import { formatDateLabel, formatMoney, formatRange } from "@/lib/format";
 import { type ClubCopy } from "@/lib/club-branding";
+import { UI_LABELS, type SupportedLocale } from "@/lib/i18n";
 import { AuthPromptModal } from "@/components/auth-prompt-modal";
 
 type SelectedSlot = {
@@ -24,6 +25,7 @@ type BookingDrawerProps = {
   } | null;
   copy: ClubCopy;
   isConfigured: boolean;
+  locale: SupportedLocale;
   clubName: string;
   logoUrl: string | null;
   onClose: () => void;
@@ -39,6 +41,7 @@ export function BookingDrawer({
   activeHold,
   copy,
   isConfigured,
+  locale,
   clubName,
   logoUrl,
   onClose,
@@ -83,6 +86,7 @@ export function BookingDrawer({
   const canSubmit = Boolean(activeHold) || Boolean(selectedOption?.enabled);
   const minutesLeft = Math.floor(secondsLeft / 60);
   const paddedSecondsLeft = String(secondsLeft % 60).padStart(2, "0");
+  const ui = UI_LABELS[locale];
 
   return (
     <div className="fixed inset-0 z-50 flex items-end bg-court-ink/85 p-3 backdrop-blur-sm md:items-center md:justify-center">
@@ -94,7 +98,7 @@ export function BookingDrawer({
               {selectedSlot.courtName}
             </h2>
             <p className="mt-1 type-body text-court-cyan">
-              {copy.booking.title} · {formatDateLabel(selectedSlot.dateISO)} a las {minutesToTime(selectedSlot.startMinute)}
+              {copy.booking.title} · {formatDateLabel(selectedSlot.dateISO, locale)} {ui.at} {minutesToTime(selectedSlot.startMinute)}
             </p>
           </div>
           <button
@@ -102,7 +106,7 @@ export function BookingDrawer({
             onClick={onClose}
             type="button"
           >
-            Cerrar
+            {ui.close}
           </button>
         </div>
 
@@ -115,7 +119,7 @@ export function BookingDrawer({
               {minutesLeft}:{paddedSecondsLeft}
             </p>
             <p className="mt-1 type-body text-court-cyan">
-              Este horario esta guardado para ti mientras termina el contador.
+              {ui.holdCountdown}
             </p>
           </div>
         ) : null}
@@ -141,17 +145,19 @@ export function BookingDrawer({
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="type-body-strong">{option.duration} minutos</p>
+                    <p className="type-body-strong">
+                      {option.duration} {ui.minutes}
+                    </p>
                     <p className="type-body text-court-cyan">
                       {formatRange(selectedSlot.startMinute, endMinute)}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="type-card text-court-ball">
-                      {option.price ? formatMoney(option.price.totalCents) : "-"}
+                      {option.price ? formatMoney(option.price.totalCents, "EUR", locale) : "-"}
                     </p>
                     <p className="type-badge text-court-cyan">
-                      {option.enabled ? "Disponible" : "No disponible"}
+                      {option.enabled ? ui.available : ui.unavailable}
                     </p>
                   </div>
                 </div>
@@ -187,13 +193,13 @@ export function BookingDrawer({
         >
           {isSubmitting
             ? activeHold
-              ? "Confirmando reserva..."
-              : "Guardando horario..."
+              ? ui.confirmingBooking
+              : ui.savingTimeSlot
             : canCreateBookings
               ? activeHold
-                ? "Confirmar reserva"
+                ? ui.confirmBooking
                 : copy.booking.buttonLabel
-              : "Inicia sesion para reservar"}
+              : ui.signInToBook}
         </button>
 
         {message ? (
@@ -203,7 +209,7 @@ export function BookingDrawer({
         ) : null}
 
         <p className="mt-3 text-center type-note text-court-cyan">
-          En Fase 3 el horario se guarda temporalmente 6 minutos. En Fase 4 este paso ira a Stripe.
+          {ui.holdFootnote}
         </p>
       </section>
 
@@ -212,6 +218,7 @@ export function BookingDrawer({
           clubName={clubName}
           copy={copy.auth}
           isConfigured={isConfigured}
+          locale={locale}
           logoUrl={logoUrl}
           onClose={() => setIsAuthModalOpen(false)}
         />

@@ -2,13 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { DatePicker } from "@/components/date-picker";
+import { type SupportedLocale } from "@/lib/i18n";
 
 type AdminDatePickerProps = {
   selectedDate: string;
   selectedCourt: string;
+  locale: SupportedLocale;
 };
 
-export function AdminDatePicker({ selectedDate, selectedCourt }: AdminDatePickerProps) {
+export function AdminDatePicker({ selectedDate, selectedCourt, locale }: AdminDatePickerProps) {
   const router = useRouter();
 
   function selectDate(dateISO: string) {
@@ -24,5 +26,5 @@ export function AdminDatePicker({ selectedDate, selectedCourt }: AdminDatePicker
     router.push(`/admin?${params.toString()}`);
   }
 
-  return <DatePicker allowAllDates onSelectDate={selectDate} selectedDate={selectedDate} />;
+  return <DatePicker allowAllDates locale={locale} onSelectDate={selectDate} selectedDate={selectedDate} />;
 }

@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const targetUserId = body.userId ?? null;
 
   if (durationMinutes !== 60 && durationMinutes !== 90) {
-    return NextResponse.json({ error: "Duracion no permitida." }, { status: 400 });
+    return NextResponse.json({ error: "Duration not allowed." }, { status: 400 });
   }
 
   if (!isInsideClubHours(startMinute, durationMinutes)) {
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Inicia sesion como admin." }, { status: 401 });
+    return NextResponse.json({ error: "Sign in as an admin." }, { status: 401 });
   }
 
   const { data: profile } = await supabase
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   }
 
   if (!targetUserId) {
-    return NextResponse.json({ error: "Selecciona un jugador para la reserva." }, { status: 400 });
+    return NextResponse.json({ error: "Select a player for this booking." }, { status: 400 });
   }
 
   const { data: targetProfile } = await supabase
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     .single();
 
   if (!targetProfile) {
-    return NextResponse.json({ error: "No encontramos ese jugador." }, { status: 400 });
+    return NextResponse.json({ error: "We could not find that player." }, { status: 400 });
   }
 
   const availability = await getAvailabilityData(dateISO);
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     });
   } catch {
     return NextResponse.json(
-      { error: "No hay una regla de precio configurada para ese horario." },
+      { error: "There is no pricing rule configured for that time slot." },
       { status: 400 }
     );
   }
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
     price = calculatePrice(dateISO, startMinute, durationMinutes, availability.pricingRules);
   } catch {
     return NextResponse.json(
-      { error: "No hay una regla de precio configurada para ese horario." },
+      { error: "There is no pricing rule configured for that time slot." },
       { status: 400 }
     );
   }
@@ -172,7 +172,7 @@ export async function POST(request: Request) {
 
   if (error || !data) {
     return NextResponse.json(
-      { error: "No se pudo crear la reserva. Puede que ese hueco ya este ocupado." },
+      { error: "Could not create the booking. That slot may already be occupied." },
       { status: 409 }
     );
   }

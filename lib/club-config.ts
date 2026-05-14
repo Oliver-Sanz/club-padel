@@ -1,13 +1,16 @@
 import { unstable_noStore as noStore } from "next/cache";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import {
   DEFAULT_COLORS,
-  DEFAULT_COPY,
   getDefaultClubConfig,
+  getCopyForLocale,
   mergeDeep,
+  normalizeLocalizedCopy,
   type ClubConfig
 } from "@/lib/club-branding";
+import { LOCALE_COOKIE, normalizeLocale } from "@/lib/i18n";
 
 const BRANDING_BUCKET = "club-branding";
 
@@ -20,9 +23,11 @@ type ClubSettingsRow = {
 
 export async function getClubConfig(): Promise<ClubConfig> {
   noStore();
+  const cookieStore = await cookies();
+  const locale = normalizeLocale(cookieStore.get(LOCALE_COOKIE)?.value);
 
   if (!isSupabaseConfigured()) {
-    return getDefaultClubConfig();
+    return getDefaultClubConfig(locale);
   }
 
   try {
@@ -37,7 +42,7 @@ export async function getClubConfig(): Promise<ClubConfig> {
     const club = clubs?.[0];
 
     if (!club) {
-      return getDefaultClubConfig();
+      return getDefaultClubConfig(locale);
     }
 
     const { data: settings } = await supabase
@@ -48,7 +53,8 @@ export async function getClubConfig(): Promise<ClubConfig> {
 
     const typedSettings = settings as ClubSettingsRow | null;
     const logoPath = typedSettings?.logo_path ?? null;
-    const mergedCopy = mergeDeep(DEFAULT_COPY, typedSettings?.copy);
+    const localizedCopy = normalizeLocalizedCopy(typedSettings?.copy);
+    const mergedCopy = getCopyForLocale(localizedCopy, locale);
     const fullLogoPath =
       typedSettings?.logo_full_path ?? mergedCopy.system.fullLogoPathFallback ?? null;
 
@@ -61,16 +67,18 @@ export async function getClubConfig(): Promise<ClubConfig> {
     return {
       clubId: club.id,
       slug: club.slug,
+      locale,
       clubName: club.name,
       logoPath,
       logoUrl,
       fullLogoPath,
       fullLogoUrl,
       colors: mergeDeep(DEFAULT_COLORS, typedSettings?.colors),
-      copy: mergedCopy
+      copy: mergedCopy,
+      localizedCopy
     };
   } catch {
-    return getDefaultClubConfig();
+    return getDefaultClubConfig(locale);
   }
 }
 

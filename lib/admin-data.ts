@@ -1,6 +1,7 @@
 import { getClubDateISO, getClubDayRangeUtc } from "@/lib/club-time";
 import { toISODate } from "@/lib/format";
 import { isClubAdminRole, isPlayerRole, isSuperAdminRole } from "@/lib/permissions";
+import { UI_LABELS, type SupportedLocale } from "@/lib/i18n";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { getSafeUser } from "@/lib/supabase/session";
@@ -86,7 +87,11 @@ function emptyAdminData(params: {
   };
 }
 
-export async function getAdminData(params: { date?: string; court?: string }): Promise<AdminData> {
+export async function getAdminData(
+  params: { date?: string; court?: string },
+  locale: SupportedLocale = "en"
+): Promise<AdminData> {
+  const ui = UI_LABELS[locale];
   const selectedDate = params.date ?? toISODate(new Date());
   const visibleDates = buildAdminDateWindow(selectedDate);
   const selectedCourt = params.court ?? "all";
@@ -175,8 +180,8 @@ export async function getAdminData(params: { date?: string; court?: string }): P
     isAdmin: true,
     isSuperAdmin: isSuperAdminRole(profile?.role),
     currentUserLabel: profile?.full_name || profile?.email || user.email || null,
-    currentRoleLabel: isSuperAdminRole(profile?.role) ? "Super admin" : "Admin club",
-    currentScopeLabel: isSuperAdminRole(profile?.role) ? "Plataforma" : "Club",
+    currentRoleLabel: isSuperAdminRole(profile?.role) ? "Super admin" : ui.clubAdmin,
+    currentScopeLabel: isSuperAdminRole(profile?.role) ? ui.platform : "Club",
     selectedDate,
     selectedCourt,
     courts: courts ?? [],
@@ -185,7 +190,7 @@ export async function getAdminData(params: { date?: string; court?: string }): P
         ?.filter((profile) => isPlayerRole(profile.role))
         .map((profile) => ({
           id: profile.id,
-          label: profile.full_name || profile.email || "Jugador sin nombre",
+          label: profile.full_name || profile.email || ui.unnamedPlayer,
           role: profile.role
         })) ?? [],
     dayTabs: visibleDates.map((dateISO) => ({
@@ -196,7 +201,7 @@ export async function getAdminData(params: { date?: string; court?: string }): P
       bookings?.map((booking) => ({
         id: booking.id,
         courtId: booking.court_id,
-        courtName: courtMap.get(booking.court_id) ?? `Pista ${booking.court_id}`,
+        courtName: courtMap.get(booking.court_id) ?? `Court ${booking.court_id}`,
         userId: booking.user_id,
         startTime: booking.start_time,
         endTime: booking.end_time,

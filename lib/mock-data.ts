@@ -6,9 +6,9 @@ export type Court = {
 };
 
 export const courts: Court[] = [
-  { id: 1, name: "Pista 1" },
-  { id: 2, name: "Pista 2" },
-  { id: 3, name: "Pista 3" }
+  { id: 1, name: "Court 1" },
+  { id: 2, name: "Court 2" },
+  { id: 3, name: "Court 3" }
 ];
 
 export const mockScheduleItems: ScheduleItem[] = [
@@ -18,7 +18,7 @@ export const mockScheduleItems: ScheduleItem[] = [
     startMinute: parseTimeToMinutes("09:30"),
     endMinute: parseTimeToMinutes("11:00"),
     status: "confirmed",
-    label: "Reservada"
+    label: "Booked"
   },
   {
     id: "hold-1",
@@ -26,7 +26,7 @@ export const mockScheduleItems: ScheduleItem[] = [
     startMinute: parseTimeToMinutes("18:00"),
     endMinute: parseTimeToMinutes("19:30"),
     status: "pending_payment",
-    label: "En proceso",
+    label: "In progress",
     expiresAt: new Date(Date.now() + 8 * 60 * 1000)
   },
   {
@@ -35,7 +35,7 @@ export const mockScheduleItems: ScheduleItem[] = [
     startMinute: parseTimeToMinutes("12:00"),
     endMinute: parseTimeToMinutes("13:30"),
     status: "blocked",
-    label: "Mantenimiento"
+    label: "Maintenance"
   },
   {
     id: "booking-2",
@@ -43,7 +43,7 @@ export const mockScheduleItems: ScheduleItem[] = [
     startMinute: parseTimeToMinutes("16:30"),
     endMinute: parseTimeToMinutes("17:30"),
     status: "confirmed",
-    label: "Reservada"
+    label: "Booked"
   }
 ];
 
@@ -55,7 +55,7 @@ export const pricingRules: PricingRule[] = [
       startMinute: parseTimeToMinutes("08:00"),
       endMinute: parseTimeToMinutes("17:00"),
       pricePer30MinCents: 600,
-      label: "Valle"
+      label: "Off-peak"
     },
     {
       id: `weekday-punta-${dayOfWeek}`,
@@ -63,7 +63,7 @@ export const pricingRules: PricingRule[] = [
       startMinute: parseTimeToMinutes("17:00"),
       endMinute: parseTimeToMinutes("23:00"),
       pricePer30MinCents: 900,
-      label: "Punta"
+      label: "Peak"
     }
   ]),
   ...[0, 6].map((dayOfWeek) => ({
@@ -72,6 +72,6 @@ export const pricingRules: PricingRule[] = [
     startMinute: parseTimeToMinutes("08:00"),
     endMinute: parseTimeToMinutes("23:00"),
     pricePer30MinCents: 1000,
-    label: "Fin de semana"
+    label: "Weekend"
   }))
 ];

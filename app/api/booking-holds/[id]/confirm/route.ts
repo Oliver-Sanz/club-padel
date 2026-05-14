@@ -30,7 +30,7 @@ export async function POST(_request: Request, context: ConfirmHoldContext) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Inicia sesion para confirmar." }, { status: 401 });
+    return NextResponse.json({ error: "Sign in to confirm." }, { status: 401 });
   }
 
   await supabase.rpc("expire_old_booking_holds");
@@ -65,7 +65,7 @@ export async function POST(_request: Request, context: ConfirmHoldContext) {
     price = calculatePrice(dateISO, startMinute, durationMinutes, availability.pricingRules);
   } catch {
     return NextResponse.json(
-      { error: "No hay una regla de precio configurada para ese horario." },
+      { error: "There is no pricing rule configured for that time slot." },
       { status: 400 }
     );
   }
@@ -88,7 +88,7 @@ export async function POST(_request: Request, context: ConfirmHoldContext) {
 
   if (bookingError) {
     return NextResponse.json(
-      { error: "No se pudo confirmar la reserva. Puede que el hueco ya no este disponible." },
+      { error: "Could not confirm the booking. That slot may no longer be available." },
       { status: 409 }
     );
   }

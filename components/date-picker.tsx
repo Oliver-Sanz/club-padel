@@ -4,25 +4,32 @@ import { useMemo, useState } from "react";
 import {
   addMonths,
   getMonthGrid,
-  mondayFirstWeekDays,
   startOfMonth
 } from "@/lib/date-picker-rules";
 import { buildDateOptions, formatDateLabel, toISODate } from "@/lib/format";
+import { LOCALE_FORMATS, UI_LABELS, type SupportedLocale } from "@/lib/i18n";
 
 type DatePickerProps = {
   selectedDate: string;
   onSelectDate: (dateISO: string) => void;
+  locale: SupportedLocale;
   allowAllDates?: boolean;
 };
 
-export function DatePicker({ selectedDate, onSelectDate, allowAllDates = false }: DatePickerProps) {
+const weekDaysByLocale: Record<SupportedLocale, string[]> = {
+  en: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+  es: ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"]
+};
+
+export function DatePicker({ selectedDate, onSelectDate, locale, allowAllDates = false }: DatePickerProps) {
   const allowedDates = useMemo(() => new Set(buildDateOptions(8)), []);
   const [visibleMonth, setVisibleMonth] = useState(() =>
     startOfMonth(new Date(`${selectedDate}T12:00:00`))
   );
 
   const monthDays = useMemo(() => getMonthGrid(visibleMonth), [visibleMonth]);
-  const monthLabel = new Intl.DateTimeFormat("es-ES", {
+  const ui = UI_LABELS[locale];
+  const monthLabel = new Intl.DateTimeFormat(LOCALE_FORMATS[locale], {
     month: "long",
     year: "numeric"
   }).format(visibleMonth);
@@ -31,7 +38,7 @@ export function DatePicker({ selectedDate, onSelectDate, allowAllDates = false }
     <div className="mx-auto w-full max-w-[22rem] rounded-[1.75rem] border border-court-ball bg-court-ink p-4 shadow-soft">
       <div className="mb-4 flex items-center justify-between gap-3">
         <button
-          aria-label="Mes anterior"
+          aria-label={ui.previousMonth}
           className="grid h-11 w-11 place-items-center rounded-xl border border-court-cyan bg-court-navy type-card text-court-cyan shadow-sm transition hover:border-court-ball hover:text-court-ball"
           onClick={() => setVisibleMonth((current) => addMonths(current, -1))}
           type="button"
@@ -40,7 +47,7 @@ export function DatePicker({ selectedDate, onSelectDate, allowAllDates = false }
         </button>
         <p className="text-center type-body-strong capitalize text-court-ball">{monthLabel}</p>
         <button
-          aria-label="Mes siguiente"
+          aria-label={ui.nextMonth}
           className="grid h-11 w-11 place-items-center rounded-xl border border-court-cyan bg-court-navy type-card text-court-cyan shadow-sm transition hover:border-court-ball hover:text-court-ball"
           onClick={() => setVisibleMonth((current) => addMonths(current, 1))}
           type="button"
@@ -50,7 +57,7 @@ export function DatePicker({ selectedDate, onSelectDate, allowAllDates = false }
       </div>
 
       <div className="grid grid-cols-[repeat(7,minmax(0,1fr))] gap-1 border-y border-court-ball py-3">
-        {mondayFirstWeekDays.map((day) => (
+        {weekDaysByLocale[locale].map((day) => (
           <span className="type-badge text-center text-court-cyan" key={day}>
             {day}
           </span>
@@ -87,9 +94,9 @@ export function DatePicker({ selectedDate, onSelectDate, allowAllDates = false }
       </div>
 
       <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-court-cyan bg-court-navy p-3">
-        <span className="type-body text-court-cyan">Dia seleccionado</span>
+        <span className="type-body text-court-cyan">{ui.selectedDay}</span>
         <span className="rounded-xl bg-court-ball px-3 py-2 type-button capitalize text-court-ink">
-          {formatDateLabel(selectedDate)}
+          {formatDateLabel(selectedDate, locale)}
         </span>
       </div>
     </div>

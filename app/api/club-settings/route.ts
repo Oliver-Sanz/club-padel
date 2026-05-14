@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { type ClubCopy, type ClubThemeColors } from "@/lib/club-branding";
+import { type ClubCopy, type ClubThemeColors, type LocalizedClubCopy } from "@/lib/club-branding";
 import { getClubBrandingBucket, getClubConfig } from "@/lib/club-config";
 import { isSuperAdminRole } from "@/lib/permissions";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 type ClubSettingsPayload = {
   clubName: string;
   colors: ClubThemeColors;
-  copy: ClubCopy;
+  copy: LocalizedClubCopy;
   logoPath: string | null;
   fullLogoPath: string | null;
 };
@@ -44,6 +44,15 @@ function isClubCopy(value: unknown): value is ClubCopy {
   return Boolean(candidate.home && candidate.auth && candidate.booking && candidate.admin && candidate.player && candidate.system);
 }
 
+function isLocalizedClubCopy(value: unknown): value is LocalizedClubCopy {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return isClubCopy(candidate.en) && isClubCopy(candidate.es);
+}
+
 function getStringFormDataValue(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -57,16 +66,29 @@ function sanitizeFileName(name: string) {
     .replace(/^-|-$/g, "");
 }
 
-function getCopyWithFullLogoFallback(copy: ClubCopy, fullLogoPath: string | null): ClubCopy {
+function getCopyWithFullLogoFallback(
+  copy: LocalizedClubCopy,
+  fullLogoPath: string | null
+): LocalizedClubCopy {
   if (!fullLogoPath) {
     return copy;
   }
 
   return {
     ...copy,
-    system: {
-      ...copy.system,
-      fullLogoPathFallback: fullLogoPath
+    en: {
+      ...copy.en,
+      system: {
+        ...copy.en.system,
+        fullLogoPathFallback: fullLogoPath
+      }
+    },
+    es: {
+      ...copy.es,
+      system: {
+        ...copy.es.system,
+        fullLogoPathFallback: fullLogoPath
+      }
     }
   };
 }
@@ -89,7 +111,7 @@ async function uploadBrandingAsset(
     });
 
   if (uploadError) {
-    return { path: null, error: "No se pudo subir la imagen." } as const;
+    return { path: null, error: "Could not upload the image." } as const;
   }
 
   return { path, error: null } as const;
@@ -102,7 +124,7 @@ async function requireSuperAdmin() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: NextResponse.json({ error: "Inicia sesion como super admin." }, { status: 401 }) };
+    return { error: NextResponse.json({ error: "Sign in as a super admin." }, { status: 401 }) };
   }
 
   const { data: profile } = await supabase
@@ -112,7 +134,7 @@ async function requireSuperAdmin() {
     .single();
 
   if (!isSuperAdminRole(profile?.role)) {
-    return { error: NextResponse.json({ error: "No tienes permisos de super admin." }, { status: 403 }) };
+    return { error: NextResponse.json({ error: "You do not have super admin permissions." }, { status: 403 }) };
   }
 
   return { supabase, user };
@@ -135,7 +157,7 @@ export async function GET() {
 export async function POST(request: Request) {
   if (!isSupabaseConfigured()) {
     return NextResponse.json(
-      { error: "Supabase todavia no esta configurado." },
+      { error: "Supabase is not configured yet." },
       { status: 400 }
     );
   }
@@ -150,7 +172,7 @@ export async function POST(request: Request) {
   const payloadRaw = formData.get("payload");
 
   if (!isString(payloadRaw)) {
-    return NextResponse.json({ error: "No hemos recibido la configuracion." }, { status: 400 });
+    return NextResponse.json({ error: "We did not receive the settings." }, { status: 400 });
   }
 
   let payload: ClubSettingsPayload;
@@ -158,19 +180,19 @@ export async function POST(request: Request) {
   try {
     payload = JSON.parse(payloadRaw) as ClubSettingsPayload;
   } catch {
-    return NextResponse.json({ error: "La configuracion no tiene un formato valido." }, { status: 400 });
+    return NextResponse.json({ error: "The settings payload is not valid." }, { status: 400 });
   }
 
   if (!isString(payload.clubName) || !payload.clubName.trim()) {
-    return NextResponse.json({ error: "El nombre del club es obligatorio." }, { status: 400 });
+    return NextResponse.json({ error: "Club name is required." }, { status: 400 });
   }
 
   if (!isClubThemeColors(payload.colors)) {
-    return NextResponse.json({ error: "Los colores no tienen un formato valido." }, { status: 400 });
+    return NextResponse.json({ error: "Colors are not valid." }, { status: 400 });
   }
 
-  if (!isClubCopy(payload.copy)) {
-    return NextResponse.json({ error: "Los textos no tienen un formato valido." }, { status: 400 });
+  if (!isLocalizedClubCopy(payload.copy)) {
+    return NextResponse.json({ error: "Copy is not valid." }, { status: 400 });
   }
 
   const clubSlug = "default";
@@ -189,7 +211,7 @@ export async function POST(request: Request) {
 
   if (clubError || !club) {
     return NextResponse.json(
-      { error: "No se pudo guardar el club." },
+      { error: "Could not save the club." },
       { status: 500 }
     );
   }
@@ -224,7 +246,7 @@ export async function POST(request: Request) {
   const upsertPayload: {
     club_id: string;
     colors: ClubThemeColors;
-    copy: ClubCopy;
+    copy: LocalizedClubCopy;
     logo_path: string | null;
     updated_at: string;
     logo_full_path?: string | null;
@@ -258,8 +280,8 @@ export async function POST(request: Request) {
       {
         error:
           process.env.NODE_ENV === "development"
-            ? `No se pudo guardar la configuracion del club: ${settingsError.message}`
-            : "No se pudo guardar la configuracion del club."
+            ? `Could not save club settings: ${settingsError.message}`
+            : "Could not save club settings."
       },
       { status: 500 }
     );

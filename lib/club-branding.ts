@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { DEFAULT_LOCALE, normalizeLocale, type SupportedLocale } from "@/lib/i18n";
 
 export type ClubThemeColors = {
   background: string;
@@ -84,6 +85,7 @@ export type ClubCopy = {
 export type ClubConfig = {
   clubId: string | null;
   slug: string;
+  locale: SupportedLocale;
   clubName: string;
   logoPath: string | null;
   logoUrl: string | null;
@@ -91,7 +93,10 @@ export type ClubConfig = {
   fullLogoUrl: string | null;
   colors: ClubThemeColors;
   copy: ClubCopy;
+  localizedCopy: LocalizedClubCopy;
 };
+
+export type LocalizedClubCopy = Record<SupportedLocale, ClubCopy>;
 
 export const DEFAULT_COLORS: ClubThemeColors = {
   background: "#25476E",
@@ -104,7 +109,83 @@ export const DEFAULT_COLORS: ClubThemeColors = {
   line: "#CCFF00"
 };
 
-export const DEFAULT_COPY: ClubCopy = {
+export const DEFAULT_COPY_EN: ClubCopy = {
+  home: {
+    eyebrow: "Padel Club",
+    title: "Clear bookings, faster flow, no double-bookings.",
+    subtitle:
+      "MVP phase 2: Supabase login, availability ready for real data, and a safe fallback to mocks while you finish the setup."
+  },
+  auth: {
+    eyebrow: "Phase 2 Access",
+    title: "Book with your account",
+    subtitle:
+      "You can explore availability without signing in. To book, use Google or an email link.",
+    googleButton: "Continue with Google",
+    emailButton: "Send email link",
+    helper:
+      "Supabase is not configured yet. The app will keep using mock data until you fill in `.env.local`.",
+    loggedInTitle: "You are signed in",
+    loggedInSubtitle: "Active session",
+    reservationsButton: "My bookings",
+    adminButton: "Open admin",
+    logoutButton: "Log out",
+    missingConfig: "Configure Supabase to enable real access."
+  },
+  booking: {
+    eyebrow: "Availability",
+    title: "Choose a court and time",
+    subtitle:
+      "Synchronized horizontal scroll: move any court and all three stay aligned. Yellow slots are temporary holds while another booking is in progress.",
+    buttonLabel: "Hold for 6 minutes",
+    activeHoldLabel: "Temporary hold active",
+    holdSuccess: "Time slot saved. Confirm the booking before it expires.",
+    holdRefreshError: "We could not refresh availability. Retrying with the latest data.",
+    loadingMessage: "Updating availability...",
+    legendAvailable: "Available",
+    legendBooked: "Occupied",
+    legendBlocked: "Blocked",
+    legendInProgress: "In progress"
+  },
+  admin: {
+    eyebrow: "Admin",
+    title: "Club bookings",
+    subtitle: "View all upcoming active bookings, sorted by date and court.",
+    backButton: "Back to bookings",
+    settingsTitle: "Branding and copy",
+    settingsSubtitle:
+      "Adjust the club name, logo, colors, and visible website copy without touching code.",
+    reservationsTitle: "Club bookings",
+    reservationsSubtitle:
+      "View all upcoming active bookings, sorted by date and court.",
+    manualTitle: "Create manual booking",
+    manualSubtitle:
+      "The day is selected in the calendar above. This action creates a confirmed booking from the club side, without payment."
+  },
+  player: {
+    eyebrow: "Player",
+    title: "My bookings",
+    subtitle: "Review your upcoming bookings and cancel for free up to 6 hours before.",
+    upcomingTitle: "Upcoming bookings",
+    historyTitle: "History",
+    emptyUpcoming: "You do not have any upcoming bookings yet.",
+    emptyHistory: "No history yet.",
+    cancelButton: "Cancel booking",
+    cancelingButton: "Cancelling...",
+    cancelSuccess: "Booking cancelled.",
+    contactClub: "Less than 6 hours left: contact the club",
+    cancelledLabel: "Cancelled"
+  },
+  system: {
+    configurationMissing: "Configure Supabase before using this page.",
+    loadingAvailability: "Loading availability...",
+    dataSourceMock: "Local mock",
+    dataSourceSupabase: "Supabase",
+    updatingAvailability: "Updating availability..."
+  }
+};
+
+export const DEFAULT_COPY_ES: ClubCopy = {
   home: {
     eyebrow: "Club de Padel",
     title: "Reservas claras, rapidas y sin dobles reservas.",
@@ -180,6 +261,13 @@ export const DEFAULT_COPY: ClubCopy = {
   }
 };
 
+export const DEFAULT_LOCALIZED_COPY: LocalizedClubCopy = {
+  en: DEFAULT_COPY_EN,
+  es: DEFAULT_COPY_ES
+};
+
+export const DEFAULT_COPY = DEFAULT_COPY_EN;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -207,6 +295,31 @@ export function mergeDeep<T>(base: T, override: unknown): T {
   return result as T;
 }
 
+function hasLocalizedCopyShape(value: unknown): value is Partial<LocalizedClubCopy> {
+  return isRecord(value) && (isRecord(value.en) || isRecord(value.es));
+}
+
+export function normalizeLocalizedCopy(override: unknown): LocalizedClubCopy {
+  if (hasLocalizedCopyShape(override)) {
+    return {
+      en: mergeDeep(DEFAULT_COPY_EN, override.en),
+      es: mergeDeep(DEFAULT_COPY_ES, override.es)
+    };
+  }
+
+  return {
+    en: DEFAULT_COPY_EN,
+    es: mergeDeep(DEFAULT_COPY_ES, override)
+  };
+}
+
+export function getCopyForLocale(
+  localizedCopy: LocalizedClubCopy,
+  locale: unknown
+): ClubCopy {
+  return localizedCopy[normalizeLocale(locale)];
+}
+
 export function getClubThemeStyle(colors: ClubThemeColors): CSSProperties {
   return {
     "--court-background": colors.background,
@@ -220,16 +333,20 @@ export function getClubThemeStyle(colors: ClubThemeColors): CSSProperties {
   } as CSSProperties;
 }
 
-export function getDefaultClubConfig(): ClubConfig {
+export function getDefaultClubConfig(locale: SupportedLocale = DEFAULT_LOCALE): ClubConfig {
+  const normalizedLocale = normalizeLocale(locale);
+
   return {
     clubId: null,
     slug: "default",
-    clubName: "Club de Padel",
+    locale: normalizedLocale,
+    clubName: "Padel Club",
     logoPath: null,
     logoUrl: null,
     fullLogoPath: null,
     fullLogoUrl: null,
     colors: DEFAULT_COLORS,
-    copy: DEFAULT_COPY
+    copy: DEFAULT_LOCALIZED_COPY[normalizedLocale],
+    localizedCopy: DEFAULT_LOCALIZED_COPY
   };
 }

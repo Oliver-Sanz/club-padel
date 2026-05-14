@@ -24,7 +24,7 @@ export async function POST(_request: Request, context: CancelBookingContext) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Inicia sesion para cancelar." }, { status: 401 });
+    return NextResponse.json({ error: "Sign in to cancel." }, { status: 401 });
   }
 
   const { data: booking } = await supabase
@@ -63,7 +63,7 @@ export async function POST(_request: Request, context: CancelBookingContext) {
 
   if (error) {
     return NextResponse.json(
-      { error: "No se pudo cancelar la reserva." },
+      { error: "Could not cancel the booking." },
       { status: 400 }
     );
   }

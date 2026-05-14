@@ -45,7 +45,7 @@ describe("booking rules", () => {
     const price = calculatePrice("2026-05-06", parseTimeToMinutes("16:30"), 90, pricingRules);
 
     expect(price.totalCents).toBe(2400);
-    expect(price.breakdown.map((block) => block.label)).toEqual(["Valle", "Punta", "Punta"]);
+    expect(price.breakdown.map((block) => block.label)).toEqual(["Off-peak", "Peak", "Peak"]);
   });
 
   it("disables 90 minutes when the slot does not fit before a conflict", () => {
@@ -84,7 +84,7 @@ describe("booking rules", () => {
     });
 
     expect(options.every((option) => !option.enabled)).toBe(true);
-    expect(options[0].reason).toContain("ya ha pasado");
+    expect(options[0].reason).toContain("already passed");
   });
 
   it("enforces the active booking limit", () => {

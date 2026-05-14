@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { type ClubCopy } from "@/lib/club-branding";
+import { UI_LABELS, type SupportedLocale } from "@/lib/i18n";
 import { ClubLogo } from "@/components/club-logo";
 
 type AuthPromptModalProps = {
@@ -10,6 +11,7 @@ type AuthPromptModalProps = {
   logoUrl: string | null;
   isConfigured: boolean;
   copy: ClubCopy["auth"];
+  locale: SupportedLocale;
   onClose: () => void;
 };
 
@@ -18,11 +20,13 @@ export function AuthPromptModal({
   logoUrl,
   isConfigured,
   copy,
+  locale,
   onClose
 }: AuthPromptModalProps) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const ui = UI_LABELS[locale];
 
   async function loginWithGoogle() {
     setMessage("");
@@ -67,7 +71,7 @@ export function AuthPromptModal({
       return;
     }
 
-    setMessage("Te hemos enviado un enlace de acceso al email.");
+    setMessage(ui.emailSent);
   }
 
   return (
@@ -87,7 +91,7 @@ export function AuthPromptModal({
             onClick={onClose}
             type="button"
           >
-            Cerrar
+            {ui.close}
           </button>
         </div>
 
@@ -125,7 +129,7 @@ export function AuthPromptModal({
             disabled={!isConfigured || isLoading}
             type="submit"
           >
-            {isLoading ? "Enviando..." : copy.emailButton}
+            {isLoading ? ui.sending : copy.emailButton}
           </button>
         </form>
 
@@ -138,4 +142,3 @@ export function AuthPromptModal({
     </div>
   );
 }
-

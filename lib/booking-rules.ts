@@ -195,7 +195,7 @@ export function getDurationOptions(params: {
       return {
         duration,
         enabled: false,
-        reason: "La reserva queda fuera del horario del club."
+        reason: "This booking falls outside club opening hours."
       };
     }
 
@@ -203,7 +203,7 @@ export function getDurationOptions(params: {
       return {
         duration,
         enabled: false,
-        reason: "Este horario ya ha pasado."
+        reason: "This time slot has already passed."
       };
     }
 
@@ -211,19 +211,19 @@ export function getDurationOptions(params: {
       return {
         duration,
         enabled: false,
-        reason: "Este horario queda fuera de la ventana de reserva."
+        reason: "This time slot is outside the booking window."
       };
     }
 
     const conflict = getConflictingItem(items, courtId, startMinute, endMinute, now);
 
     if (conflict) {
-      const label = conflict.status === "pending_payment" ? "hay una reserva en proceso" : conflict.label;
+      const label = conflict.status === "pending_payment" ? "there is a booking in progress" : conflict.label;
 
       return {
         duration,
         enabled: false,
-        reason: `No hay ${duration} minutos seguidos: ${label}.`
+        reason: `There are not ${duration} consecutive minutes available: ${label}.`
       };
     }
 
