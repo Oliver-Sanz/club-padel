@@ -1,5 +1,6 @@
 import { getClubDateISO, getClubDayRangeUtc } from "@/lib/club-time";
 import { toISODate } from "@/lib/format";
+import { isClubAdminRole, isPlayerRole, isSuperAdminRole } from "@/lib/permissions";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { getSafeUser } from "@/lib/supabase/session";
@@ -17,13 +18,24 @@ export type AdminBookingRow = {
   createdAt: string;
 };
 
+export type AdminPlayerRow = {
+  id: string;
+  label: string;
+  role: string | null;
+};
+
 export type AdminData = {
   isConfigured: boolean;
   isLoggedIn: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
+  currentUserLabel: string | null;
+  currentRoleLabel: string | null;
+  currentScopeLabel: string | null;
   selectedDate: string;
   selectedCourt: string;
   courts: Array<{ id: number; name: string }>;
+  players: AdminPlayerRow[];
   bookings: AdminBookingRow[];
   dayTabs: Array<{
     dateISO: string;
@@ -54,12 +66,18 @@ function emptyAdminData(params: {
   isConfigured: boolean;
   isLoggedIn: boolean;
   isAdmin: boolean;
+  isSuperAdmin?: boolean;
   selectedDate: string;
   selectedCourt: string;
 }): AdminData {
   return {
     ...params,
+    isSuperAdmin: params.isSuperAdmin ?? false,
+    currentUserLabel: null,
+    currentRoleLabel: null,
+    currentScopeLabel: null,
     courts: [],
+    players: [],
     bookings: [],
     dayTabs: buildAdminDateWindow(params.selectedDate).map((dateISO) => ({
       dateISO,
@@ -78,6 +96,7 @@ export async function getAdminData(params: { date?: string; court?: string }): P
       isConfigured: false,
       isLoggedIn: false,
       isAdmin: false,
+      isSuperAdmin: false,
       selectedDate,
       selectedCourt,
     });
@@ -91,6 +110,7 @@ export async function getAdminData(params: { date?: string; court?: string }): P
       isConfigured: true,
       isLoggedIn: false,
       isAdmin: false,
+      isSuperAdmin: false,
       selectedDate,
       selectedCourt,
     });
@@ -98,21 +118,25 @@ export async function getAdminData(params: { date?: string; court?: string }): P
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,full_name,email")
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") {
+  if (!isClubAdminRole(profile?.role)) {
     return emptyAdminData({
       isConfigured: true,
       isLoggedIn: true,
       isAdmin: false,
+      isSuperAdmin: false,
       selectedDate,
       selectedCourt,
     });
   }
 
-  const { data: courts } = await supabase.from("courts").select("id,name").order("id");
+  const [{ data: courts }, { data: profiles }] = await Promise.all([
+    supabase.from("courts").select("id,name").order("id"),
+    supabase.from("profiles").select("id,full_name,email,role").order("created_at")
+  ]);
   const { start } = getDayRange(selectedDate);
   const tabStart = getClubDayRangeUtc(visibleDates[0]).start.toISOString();
   const tabEnd = getClubDayRangeUtc(visibleDates[visibleDates.length - 1]).end.toISOString();
@@ -149,9 +173,21 @@ export async function getAdminData(params: { date?: string; court?: string }): P
     isConfigured: true,
     isLoggedIn: true,
     isAdmin: true,
+    isSuperAdmin: isSuperAdminRole(profile?.role),
+    currentUserLabel: profile?.full_name || profile?.email || user.email || null,
+    currentRoleLabel: isSuperAdminRole(profile?.role) ? "Super admin" : "Admin club",
+    currentScopeLabel: isSuperAdminRole(profile?.role) ? "Plataforma" : "Club",
     selectedDate,
     selectedCourt,
     courts: courts ?? [],
+    players:
+      profiles
+        ?.filter((profile) => isPlayerRole(profile.role))
+        .map((profile) => ({
+          id: profile.id,
+          label: profile.full_name || profile.email || "Jugador sin nombre",
+          role: profile.role
+        })) ?? [],
     dayTabs: visibleDates.map((dateISO) => ({
       dateISO,
       bookingCount: bookingCounts.get(dateISO) ?? 0

@@ -15,12 +15,14 @@ import { formatMoney, formatRange } from "@/lib/format";
 type AdminManualBookingProps = {
   selectedDate: string;
   courts: Array<{ id: number; name: string }>;
+  players: Array<{ id: string; label: string }>;
   copy: ClubCopy["admin"];
 };
 
-export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBookingProps) {
+export function AdminManualBooking({ selectedDate, courts, players, copy }: AdminManualBookingProps) {
   const router = useRouter();
   const [courtId, setCourtId] = useState(() => courts[0]?.id ?? 1);
+  const [playerId, setPlayerId] = useState(() => players[0]?.id ?? "");
   const [startMinute, setStartMinute] = useState(8 * 60);
   const [duration, setDuration] = useState<DurationMinutes>(60);
   const [availability, setAvailability] = useState<AvailabilityData | null>(null);
@@ -32,6 +34,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
 
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const selectedCourt = courts.find((court) => court.id === courtId);
+  const selectedPlayer = players.find((player) => player.id === playerId);
   const timeOptions = useMemo(() => {
     if (!availability) {
       return timeSlots.map((minute) => ({
@@ -165,6 +168,12 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
     }
   }, [selectedDurationOption?.enabled, selectedOptions]);
 
+  useEffect(() => {
+    if (!playerId && players[0]?.id) {
+      setPlayerId(players[0].id);
+    }
+  }, [playerId, players]);
+
   async function createManualBooking() {
     setIsSubmitting(true);
     setMessage("Creando reserva manual...");
@@ -177,6 +186,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
         },
         body: JSON.stringify({
           courtId,
+          userId: playerId || null,
           dateISO: selectedDate,
           startMinute,
           durationMinutes: duration
@@ -213,7 +223,26 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
         </p>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
+      <div className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end">
+        <label className="grid gap-2 type-body-strong text-court-cyan">
+          Jugador
+          <select
+            className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3 text-white outline-none focus:border-court-ball"
+            disabled={players.length === 0}
+            onChange={(event) => setPlayerId(event.target.value)}
+            value={playerId}
+          >
+            {players.length === 0 ? (
+              <option value="">No hay jugadores</option>
+            ) : null}
+            {players.map((player) => (
+              <option key={player.id} value={player.id}>
+                {player.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <label className="grid gap-2 type-body-strong text-court-cyan">
           Pista
           <select
@@ -302,7 +331,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
 
         <button
           className="rounded-2xl bg-court-ball px-5 py-3 type-button text-court-ink shadow-glow transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:bg-court-cyan/20 disabled:text-court-cyan/55"
-          disabled={!selectedDurationOption?.enabled || isLoading || isSubmitting}
+          disabled={!playerId || !selectedDurationOption?.enabled || isLoading || isSubmitting}
           onClick={createManualBooking}
           type="button"
         >
@@ -313,7 +342,7 @@ export function AdminManualBooking({ selectedDate, courts, copy }: AdminManualBo
       <div className="mt-4 rounded-2xl border border-court-cyan bg-court-ink p-4 type-body-strong text-court-cyan">
         {selectedDurationOption?.enabled ? (
           <p>
-            {selectedCourt?.name ?? "Pista"} · {formatRange(startMinute, startMinute + duration)} ·{" "}
+            {selectedPlayer?.label ?? "Jugador"} · {selectedCourt?.name ?? "Pista"} · {formatRange(startMinute, startMinute + duration)} ·{" "}
             {formatMoney(selectedDurationOption.price?.totalCents ?? 0)}
           </p>
         ) : (

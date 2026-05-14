@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DurationMinutes, DurationOption, minutesToTime } from "@/lib/booking-rules";
 import { formatDateLabel, formatMoney, formatRange } from "@/lib/format";
 import { type ClubCopy } from "@/lib/club-branding";
+import { AuthPromptModal } from "@/components/auth-prompt-modal";
 
 type SelectedSlot = {
   courtName: string;
@@ -21,7 +22,10 @@ type BookingDrawerProps = {
     expiresAt: string;
     durationMinutes: DurationMinutes;
   } | null;
-  copy: ClubCopy["booking"];
+  copy: ClubCopy;
+  isConfigured: boolean;
+  clubName: string;
+  logoUrl: string | null;
   onClose: () => void;
   onConfirmBooking: (duration: DurationMinutes) => Promise<void>;
 };
@@ -34,6 +38,9 @@ export function BookingDrawer({
   isSubmitting,
   activeHold,
   copy,
+  isConfigured,
+  clubName,
+  logoUrl,
   onClose,
   onConfirmBooking
 }: BookingDrawerProps) {
@@ -47,6 +54,7 @@ export function BookingDrawer({
   }, [firstEnabled]);
 
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     if (!activeHold) {
@@ -81,12 +89,12 @@ export function BookingDrawer({
       <section className="w-full rounded-[2rem] border border-court-ball bg-court-panel p-5 shadow-soft md:max-w-xl md:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <p className="type-label text-court-ball">{copy.eyebrow}</p>
+            <p className="type-label text-court-ball">{copy.booking.eyebrow}</p>
             <h2 className="mt-2 type-card text-white">
               {selectedSlot.courtName}
             </h2>
             <p className="mt-1 type-body text-court-cyan">
-              {copy.title} · {formatDateLabel(selectedSlot.dateISO)} a las {minutesToTime(selectedSlot.startMinute)}
+              {copy.booking.title} · {formatDateLabel(selectedSlot.dateISO)} a las {minutesToTime(selectedSlot.startMinute)}
             </p>
           </div>
           <button
@@ -101,7 +109,7 @@ export function BookingDrawer({
         {activeHold ? (
           <div className="mb-4 rounded-2xl border border-court-ball bg-court-ink p-4 text-center shadow-glow">
             <p className="type-label text-court-ball">
-              {copy.activeHoldLabel}
+              {copy.booking.activeHoldLabel}
             </p>
             <p className="mt-2 type-display text-white">
               {minutesLeft}:{paddedSecondsLeft}
@@ -159,8 +167,13 @@ export function BookingDrawer({
 
         <button
           className="mt-5 w-full rounded-2xl bg-court-ball px-5 py-4 type-button text-court-ink shadow-glow transition hover:translate-y-[-1px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-cyan disabled:cursor-not-allowed disabled:bg-court-cyan/20 disabled:text-court-cyan/55"
-          disabled={!canSubmit || !canCreateBookings || isSubmitting}
+          disabled={!canSubmit || isSubmitting}
           onClick={() => {
+            if (!canCreateBookings) {
+              setIsAuthModalOpen(true);
+              return;
+            }
+
             if (activeHold) {
               void onConfirmBooking(activeHold.durationMinutes);
               return;
@@ -179,7 +192,7 @@ export function BookingDrawer({
             : canCreateBookings
               ? activeHold
                 ? "Confirmar reserva"
-                : copy.buttonLabel
+                : copy.booking.buttonLabel
               : "Inicia sesion para reservar"}
         </button>
 
@@ -193,6 +206,16 @@ export function BookingDrawer({
           En Fase 3 el horario se guarda temporalmente 6 minutos. En Fase 4 este paso ira a Stripe.
         </p>
       </section>
+
+      {isAuthModalOpen ? (
+        <AuthPromptModal
+          clubName={clubName}
+          copy={copy.auth}
+          isConfigured={isConfigured}
+          logoUrl={logoUrl}
+          onClose={() => setIsAuthModalOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

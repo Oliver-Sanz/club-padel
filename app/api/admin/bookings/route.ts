@@ -10,11 +10,13 @@ import {
 } from "@/lib/booking-rules";
 import { getAvailabilityData } from "@/lib/availability-data";
 import { clubDateTimeToUtc } from "@/lib/club-time";
+import { isClubAdminRole } from "@/lib/permissions";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
 type CreateAdminBookingBody = {
   courtId: number;
+  userId?: string | null;
   dateISO: string;
   startMinute: number;
   durationMinutes: DurationMinutes;
@@ -30,6 +32,7 @@ export async function POST(request: Request) {
 
   const body = (await request.json()) as CreateAdminBookingBody;
   const { courtId, dateISO, startMinute, durationMinutes } = body;
+  const targetUserId = body.userId ?? null;
 
   if (durationMinutes !== 60 && durationMinutes !== 90) {
     return NextResponse.json({ error: "Duracion no permitida." }, { status: 400 });
@@ -64,8 +67,22 @@ export async function POST(request: Request) {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") {
+  if (!isClubAdminRole(profile?.role)) {
     return NextResponse.json({ error: "No tienes permisos de admin." }, { status: 403 });
+  }
+
+  if (!targetUserId) {
+    return NextResponse.json({ error: "Selecciona un jugador para la reserva." }, { status: 400 });
+  }
+
+  const { data: targetProfile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", targetUserId)
+    .single();
+
+  if (!targetProfile) {
+    return NextResponse.json({ error: "No encontramos ese jugador." }, { status: 400 });
   }
 
   const availability = await getAvailabilityData(dateISO);
@@ -110,23 +127,50 @@ export async function POST(request: Request) {
   const startDate = clubDateTimeToUtc(dateISO, startMinute);
   const endDate = clubDateTimeToUtc(dateISO, startMinute + durationMinutes);
 
-  const { data, error } = await supabase
+  const bookingPayload: {
+    user_id: string;
+    court_id: number;
+    start_time: string;
+    end_time: string;
+    duration_minutes: DurationMinutes;
+    status: "confirmed";
+    price_total_cents: number;
+    price_breakdown: PriceResult["breakdown"];
+    cancellation_policy_status: string;
+    created_by?: string;
+  } = {
+    user_id: targetUserId,
+    court_id: courtId,
+    start_time: startDate.toISOString(),
+    end_time: endDate.toISOString(),
+    duration_minutes: durationMinutes,
+    status: "confirmed",
+    price_total_cents: price.totalCents,
+    price_breakdown: price.breakdown,
+    cancellation_policy_status: "admin_manual"
+  };
+
+  bookingPayload.created_by = user.id;
+
+  let { data, error } = await supabase
     .from("bookings")
-    .insert({
-      user_id: user.id,
-      court_id: courtId,
-      start_time: startDate.toISOString(),
-      end_time: endDate.toISOString(),
-      duration_minutes: durationMinutes,
-      status: "confirmed",
-      price_total_cents: price.totalCents,
-      price_breakdown: price.breakdown,
-      cancellation_policy_status: "admin_manual"
-    })
+    .insert(bookingPayload)
     .select("id")
     .single();
 
-  if (error) {
+  if (error && "created_by" in bookingPayload) {
+    delete bookingPayload.created_by;
+    const retryResult = await supabase
+      .from("bookings")
+      .insert(bookingPayload)
+      .select("id")
+      .single();
+
+    data = retryResult.data;
+    error = retryResult.error;
+  }
+
+  if (error || !data) {
     return NextResponse.json(
       { error: "No se pudo crear la reserva. Puede que ese hueco ya este ocupado." },
       { status: 409 }

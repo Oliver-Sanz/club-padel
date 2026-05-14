@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { type ClubCopy, type ClubThemeColors } from "@/lib/club-branding";
 import { getClubBrandingBucket, getClubConfig } from "@/lib/club-config";
+import { isSuperAdminRole } from "@/lib/permissions";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -94,14 +95,14 @@ async function uploadBrandingAsset(
   return { path, error: null } as const;
 }
 
-async function requireAdmin() {
+async function requireSuperAdmin() {
   const supabase = await createClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: NextResponse.json({ error: "Inicia sesion como admin." }, { status: 401 }) };
+    return { error: NextResponse.json({ error: "Inicia sesion como super admin." }, { status: 401 }) };
   }
 
   const { data: profile } = await supabase
@@ -110,8 +111,8 @@ async function requireAdmin() {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") {
-    return { error: NextResponse.json({ error: "No tienes permisos de admin." }, { status: 403 }) };
+  if (!isSuperAdminRole(profile?.role)) {
+    return { error: NextResponse.json({ error: "No tienes permisos de super admin." }, { status: 403 }) };
   }
 
   return { supabase, user };
@@ -122,7 +123,7 @@ export async function GET() {
     return NextResponse.json({ settings: await getClubConfig() });
   }
 
-  const result = await requireAdmin();
+  const result = await requireSuperAdmin();
   if ("error" in result) {
     return result.error;
   }
@@ -139,7 +140,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const auth = await requireAdmin();
+  const auth = await requireSuperAdmin();
   if ("error" in auth) {
     return auth.error;
   }

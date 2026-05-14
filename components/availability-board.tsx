@@ -33,7 +33,7 @@ const statusClasses = {
   available:
     "border-court-cyan bg-court-navy text-court-cyan hover:border-court-ball hover:text-court-ball focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-court-ball",
   unavailable: "border-court-cyan/30 bg-court-ink text-court-cyan/45",
-  confirmed: "border-court-cyan/70 bg-court-ink text-court-cyan",
+  confirmed: "border-[rgba(255,0,4,0.35)] bg-[rgba(255,0,4,0.2)] text-court-mist",
   blocked: "border-court-ball bg-court-ink text-court-ball",
   event: "border-court-cyan/70 bg-court-ink text-court-cyan",
   pending_payment: "border-court-ball bg-court-ink text-court-ball shadow-glow"
@@ -43,6 +43,9 @@ type AvailabilityBoardProps = {
   initialData: AvailabilityData;
   canCreateBookings: boolean;
   copy: ClubCopy;
+  isConfigured: boolean;
+  clubName: string;
+  logoUrl: string | null;
 };
 
 function isAvailabilityData(value: unknown): value is AvailabilityData {
@@ -60,7 +63,14 @@ function isAvailabilityData(value: unknown): value is AvailabilityData {
   );
 }
 
-export function AvailabilityBoard({ initialData, canCreateBookings, copy }: AvailabilityBoardProps) {
+export function AvailabilityBoard({
+  initialData,
+  canCreateBookings,
+  copy,
+  isConfigured,
+  clubName,
+  logoUrl
+}: AvailabilityBoardProps) {
   const [selectedDate, setSelectedDate] = useState(() => buildDateOptions(1)[0]);
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
   const [availabilityData, setAvailabilityData] = useState(initialData);
@@ -310,7 +320,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
                     <button
                       aria-label={`${court.name} ${minutesToTime(startMinute)} ${statusCopy[slotStatus]}`}
                       className={[
-                        "h-20 rounded-2xl border px-2 py-3 text-left transition disabled:cursor-not-allowed",
+                        "flex h-20 flex-col items-center justify-center rounded-2xl border px-2 py-3 text-center transition disabled:cursor-not-allowed",
                         statusClasses[slotStatus],
                         isAvailable ? "active:scale-[0.98]" : "",
                         slotStatus === "pending_payment" ? "shadow-glow" : ""
@@ -320,8 +330,8 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
                       onClick={() => selectSlot(court.id, court.name, startMinute)}
                       type="button"
                     >
-                      <span className="block type-body-strong">{minutesToTime(startMinute)}</span>
-                      <span className="mt-3 block type-badge">
+                      <span className="block type-body-strong leading-none">{minutesToTime(startMinute)}</span>
+                      <span className="mt-2 block type-badge leading-none">
                         {statusCopy[slotStatus]}
                       </span>
                     </button>
@@ -337,7 +347,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
         <span className="rounded-full border border-court-cyan bg-court-navy px-3 py-2">
           {copy.booking.legendAvailable}
         </span>
-        <span className="rounded-full border border-court-cyan/70 bg-court-ink px-3 py-2 text-court-cyan">
+        <span className="rounded-full border border-[rgba(255,0,4,0.35)] bg-[rgba(255,0,4,0.2)] px-3 py-2 text-court-mist">
           {copy.booking.legendBooked}
         </span>
         <span className="rounded-full border border-court-ball bg-court-ink px-3 py-2 text-court-ball">
@@ -351,7 +361,10 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
       <BookingDrawer
         activeHold={activeHold}
         canCreateBookings={canCreateBookings}
+        clubName={clubName}
         isSubmitting={isCreatingBooking}
+        isConfigured={isConfigured}
+        logoUrl={logoUrl}
         message={bookingMessage}
         onConfirmBooking={createBooking}
         onClose={() => {
@@ -362,7 +375,7 @@ export function AvailabilityBoard({ initialData, canCreateBookings, copy }: Avai
         }}
         options={selectedOptions}
         selectedSlot={selectedSlot}
-        copy={copy.booking}
+        copy={copy}
       />
     </section>
   );

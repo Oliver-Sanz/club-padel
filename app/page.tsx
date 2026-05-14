@@ -59,8 +59,11 @@ export default async function HomePage() {
       <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">
         <AvailabilityBoard
           canCreateBookings={Boolean(user)}
+          clubName={clubConfig.clubName}
           copy={clubConfig.copy}
           initialData={availabilityData}
+          isConfigured={isConfigured}
+          logoUrl={clubConfig.logoUrl}
         />
         <AuthCard
           clubName={clubConfig.clubName}

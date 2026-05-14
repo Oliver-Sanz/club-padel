@@ -3,7 +3,7 @@
 
 create extension if not exists btree_gist;
 
-create type public.profile_role as enum ('user', 'admin');
+create type public.profile_role as enum ('player', 'admin', 'super_admin');
 create type public.booking_status as enum (
   'pending_payment',
   'confirmed',
@@ -19,7 +19,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   email text,
-  role public.profile_role not null default 'user',
+  role public.profile_role not null default 'player',
   created_at timestamptz not null default now()
 );
 
@@ -193,6 +193,7 @@ create table public.bookings (
   currency text not null default 'eur',
   price_breakdown jsonb not null default '[]'::jsonb,
   payment_id uuid references public.payments(id) on delete set null,
+  created_by uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now(),
   cancelled_at timestamptz,
   cancellation_policy_status text,
@@ -432,9 +433,46 @@ as $$
     select 1
     from public.profiles
     where id = auth.uid()
-      and role = 'admin'
+      and role in ('admin', 'super_admin')
   );
 $$;
+
+create or replace function public.is_super_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.profiles
+    where id = auth.uid()
+      and role = 'super_admin'
+  );
+$$;
+
+create or replace function public.prevent_profile_role_self_escalation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.role is distinct from old.role
+    and auth.uid() is not null
+    and not public.is_super_admin()
+  then
+    raise exception 'Only super admins can change profile roles';
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger profiles_role_guard
+before update on public.profiles
+for each row execute function public.prevent_profile_role_self_escalation();
 
 alter table public.profiles enable row level security;
 alter table public.courts enable row level security;
@@ -456,6 +494,11 @@ on public.profiles for update
 using (id = auth.uid())
 with check (id = auth.uid());
 
+create policy "Super admins can update profiles"
+on public.profiles for update
+using (public.is_super_admin())
+with check (public.is_super_admin());
+
 create policy "Users can insert their own profile"
 on public.profiles for insert
 with check (id = auth.uid());
@@ -474,8 +517,8 @@ using (true);
 
 create policy "Admins manage clubs"
 on public.clubs for all
-using (public.is_admin())
-with check (public.is_admin());
+using (public.is_super_admin())
+with check (public.is_super_admin());
 
 create policy "Club settings are visible to everyone"
 on public.club_settings for select
@@ -483,8 +526,8 @@ using (true);
 
 create policy "Admins manage club settings"
 on public.club_settings for all
-using (public.is_admin())
-with check (public.is_admin());
+using (public.is_super_admin())
+with check (public.is_super_admin());
 
 create policy "Users can view own bookings, admins view all"
 on public.bookings for select
@@ -540,6 +583,17 @@ using (public.is_admin());
 
 -- Service-role backend code will handle payment inserts/updates from Stripe webhooks.
 
+-- Data API grants: keep explicit access for current tables and future tables created in public.
+grant usage on schema public to anon, authenticated, service_role;
+
+grant select on public.clubs, public.club_settings, public.courts, public.pricing_rules, public.availability_items
+to anon, authenticated, service_role;
+
+grant select, insert, update, delete on public.profiles, public.bookings, public.booking_holds, public.admin_blocks, public.events, public.payments
+to authenticated, service_role;
+
+grant usage, select on all sequences in schema public to authenticated, service_role;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -568,7 +622,8 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
 
-create or replace view public.availability_items as
+create or replace view public.availability_items
+with (security_invoker = true) as
 select
   b.id::text as id,
   b.court_id,

@@ -66,8 +66,13 @@ function BookingCard({
         <p className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3">
           {booking.durationMinutes} minutos
         </p>
-        <p className="rounded-2xl border border-court-cyan bg-court-ink px-4 py-3">
-          {booking.cancellationMessage || "Sin accion disponible"}
+        <p className="flex items-center gap-2 px-2 py-3 type-body text-[#ffffff]">
+          <span className="text-[1.75rem] leading-none text-[#ffffff]">×</span>
+          <span>
+            {booking.canCancel
+              ? labels.cancelButton
+              : booking.cancellationMessage || "Sin accion disponible"}
+          </span>
         </p>
       </div>
 

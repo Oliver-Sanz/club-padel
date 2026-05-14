@@ -124,13 +124,32 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const bookingGroups = groupBookingsByDay(data.bookings);
   const previousWindowDate = shiftDateISO(data.selectedDate, -7);
   const nextWindowDate = shiftDateISO(data.selectedDate, 7);
-  const view = params.view === "branding" ? "branding" : "bookings";
+  const view = params.view === "branding" && data.isSuperAdmin ? "branding" : "bookings";
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-6xl px-4 py-6 md:px-8 md:py-10">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <ClubLogo clubName={clubConfig.clubName} logoUrl={clubConfig.logoUrl} />
+          {data.isAdmin ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {data.currentRoleLabel ? (
+                <span className="inline-flex items-center rounded-full border border-court-ball bg-court-ball px-3 py-1 type-badge text-court-ink">
+                  {data.currentRoleLabel}
+                </span>
+              ) : null}
+              {data.currentScopeLabel ? (
+                <span className="inline-flex items-center rounded-full border border-court-cyan bg-court-panel px-3 py-1 type-badge text-court-cyan">
+                  {data.currentScopeLabel}
+                </span>
+              ) : null}
+              {data.currentUserLabel ? (
+                <span className="type-note text-court-grey">
+                  {data.currentUserLabel}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
           <p className="mt-4 type-label text-court-ball">
             {clubConfig.copy.admin.eyebrow}
           </p>
@@ -168,20 +187,22 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               : "border-court-cyan text-court-cyan hover:border-court-ball hover:text-court-ball"
           ].join(" ")}
           href={buildAdminLinkHref(data.selectedDate, data.selectedCourt, "bookings")}
-        >
-          Reservas
-        </Link>
-        <Link
-          className={[
-            "rounded-2xl border px-4 py-3 type-button transition",
-            view === "branding"
-              ? "border-court-ball bg-court-ball text-court-ink shadow-glow"
-              : "border-court-cyan text-court-cyan hover:border-court-ball hover:text-court-ball"
-          ].join(" ")}
-          href={buildAdminLinkHref(data.selectedDate, data.selectedCourt, "branding")}
-        >
-          Branding
-        </Link>
+          >
+            Reservas
+          </Link>
+        {data.isSuperAdmin ? (
+          <Link
+            className={[
+              "rounded-2xl border px-4 py-3 type-button transition",
+              view === "branding"
+                ? "border-court-ball bg-court-ball text-court-ink shadow-glow"
+                : "border-court-cyan text-court-cyan hover:border-court-ball hover:text-court-ball"
+            ].join(" ")}
+            href={buildAdminLinkHref(data.selectedDate, data.selectedCourt, "branding")}
+          >
+            Branding plataforma
+          </Link>
+        ) : null}
       </div>
 
       {!data.isConfigured ? (
@@ -204,7 +225,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
       {data.isLoggedIn && !data.isAdmin ? (
         <section className="rounded-[2rem] border border-court-ball bg-court-ink p-6 text-court-ball">
-          Tu usuario no tiene permisos de admin. Cambia tu rol a `admin` en la tabla `profiles`.
+          Tu usuario es jugador. Para gestionar reservas del club necesitas rol `admin` o `super_admin`.
         </section>
       ) : null}
 
@@ -233,6 +254,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <AdminManualBooking
             copy={clubConfig.copy.admin}
             courts={data.courts}
+            players={data.players}
             selectedDate={data.selectedDate}
           />
 
@@ -265,7 +287,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             aria-label="Accesos rapidos por dia"
             className="mb-4 overflow-x-auto rounded-[1.75rem] border border-court-cyan bg-court-panel p-2"
           >
-            <div className="grid min-w-[920px] grid-cols-[56px_repeat(7,minmax(0,1fr))_56px] gap-2">
+            <div className="grid min-w-[980px] grid-cols-[56px_repeat(7,minmax(7.5rem,1fr))_56px] gap-2 xl:min-w-0">
               <a
                 aria-label="Ver 7 dias anteriores"
                 className="grid place-items-center rounded-2xl border border-court-cyan type-display text-court-cyan transition hover:border-court-ball hover:text-court-ball"
@@ -279,7 +301,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 return (
                   <a
                     className={[
-                      "relative rounded-2xl px-3 py-4 text-center type-button capitalize transition",
+                      "relative flex min-h-[6.5rem] min-w-0 flex-col items-center justify-center rounded-2xl px-3 py-4 text-center type-button capitalize transition",
                       isSelected
                         ? "bg-court-ball text-court-ink shadow-glow"
                         : "text-court-cyan hover:bg-court-cyan/10 hover:text-court-ball"
@@ -287,10 +309,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                     href={buildAdminHref(tab.dateISO, data.selectedCourt)}
                     key={tab.dateISO}
                   >
-                    <span className="block">{formatTabLabel(tab.dateISO)}</span>
+                    <span className="block whitespace-nowrap">{formatTabLabel(tab.dateISO)}</span>
                     <span
                       className={[
-                        "mt-2 inline-flex rounded-full px-2 py-1 type-badge",
+                        "mt-2 inline-flex min-w-[5.75rem] justify-center whitespace-nowrap rounded-full px-2 py-1 type-badge",
                         isSelected ? "bg-court-ink text-court-ball" : "bg-court-ink text-court-cyan"
                       ].join(" ")}
                     >
@@ -361,7 +383,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         </section>
       ) : null}
 
-      {data.isAdmin && view === "branding" ? (
+      {data.isSuperAdmin && view === "branding" ? (
         <section className="rounded-[2rem] border border-court-ball bg-court-ink p-4 shadow-soft md:p-6">
           <ClubSettingsForm config={clubConfig} />
         </section>

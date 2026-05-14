@@ -112,8 +112,8 @@ using (true);
 drop policy if exists "Admins manage clubs" on public.clubs;
 create policy "Admins manage clubs"
 on public.clubs for all
-using (public.is_admin())
-with check (public.is_admin());
+using (public.is_super_admin())
+with check (public.is_super_admin());
 
 drop policy if exists "Club settings are visible to everyone" on public.club_settings;
 create policy "Club settings are visible to everyone"
@@ -123,8 +123,12 @@ using (true);
 drop policy if exists "Admins manage club settings" on public.club_settings;
 create policy "Admins manage club settings"
 on public.club_settings for all
-using (public.is_admin())
-with check (public.is_admin());
+using (public.is_super_admin())
+with check (public.is_super_admin());
+
+grant usage on schema public to anon, authenticated, service_role;
+grant select on public.clubs, public.club_settings to anon, authenticated, service_role;
+grant select, insert, update, delete on public.clubs, public.club_settings to authenticated, service_role;
 
 insert into public.clubs (slug, name, is_active)
 values ('default', 'Club de Padel', true)
@@ -154,15 +158,15 @@ using (bucket_id = 'club-branding');
 drop policy if exists "Admins can upload club branding assets" on storage.objects;
 create policy "Admins can upload club branding assets"
 on storage.objects for insert
-with check (bucket_id = 'club-branding' and public.is_admin());
+with check (bucket_id = 'club-branding' and public.is_super_admin());
 
 drop policy if exists "Admins can update club branding assets" on storage.objects;
 create policy "Admins can update club branding assets"
 on storage.objects for update
-using (bucket_id = 'club-branding' and public.is_admin())
-with check (bucket_id = 'club-branding' and public.is_admin());
+using (bucket_id = 'club-branding' and public.is_super_admin())
+with check (bucket_id = 'club-branding' and public.is_super_admin());
 
 drop policy if exists "Admins can delete club branding assets" on storage.objects;
 create policy "Admins can delete club branding assets"
 on storage.objects for delete
-using (bucket_id = 'club-branding' and public.is_admin());
+using (bucket_id = 'club-branding' and public.is_super_admin());

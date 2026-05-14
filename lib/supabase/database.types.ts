@@ -86,6 +86,7 @@ export type Database = {
           currency: string;
           price_breakdown: Json;
           payment_id: string | null;
+          created_by: string | null;
           created_at: string;
           cancelled_at: string | null;
           cancellation_policy_status: string | null;
@@ -102,6 +103,7 @@ export type Database = {
           currency?: string;
           price_breakdown?: Json;
           payment_id?: string | null;
+          created_by?: string | null;
           created_at?: string;
           cancelled_at?: string | null;
           cancellation_policy_status?: string | null;
@@ -228,14 +230,14 @@ export type Database = {
           id: string;
           full_name: string | null;
           email: string | null;
-          role: "user" | "admin";
+          role: "user" | "player" | "admin" | "super_admin";
           created_at: string;
         };
         Insert: {
           id: string;
           full_name?: string | null;
           email?: string | null;
-          role?: "user" | "admin";
+          role?: "user" | "player" | "admin" | "super_admin";
           created_at?: string;
         };
         Update: Partial<Omit<Database["public"]["Tables"]["profiles"]["Insert"], "id">>;
@@ -266,7 +268,7 @@ export type Database = {
       booking_status: "pending_payment" | "confirmed" | "cancelled" | "expired" | "blocked" | "event";
       hold_status: "active" | "expired" | "converted" | "cancelled";
       payment_status: "pending" | "paid" | "failed" | "expired" | "refunded";
-      profile_role: "user" | "admin";
+      profile_role: "user" | "player" | "admin" | "super_admin";
     };
   };
 };
