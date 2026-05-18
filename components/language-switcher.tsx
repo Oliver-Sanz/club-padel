@@ -25,7 +25,7 @@ export function LanguageSwitcher({ locale, className = "" }: LanguageSwitcherPro
   return (
     <nav
       aria-label={labels.language}
-      className={`inline-flex items-center gap-2 text-[18px] font-normal leading-none tracking-[0em] text-court-cyan ${className}`.trim()}
+      className={`inline-flex items-center gap-2 text-[15px] font-normal leading-none tracking-[0em] text-court-cyan md:text-[18px] ${className}`.trim()}
     >
       {SUPPORTED_LOCALES.map((option, index) => {
         const isSelected = option === locale;
